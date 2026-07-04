@@ -1,8 +1,3 @@
----
-config:
-  layout: elk
-  theme: mc
----
 flowchart TD
     Start([Bắt đầu]) --> Measure[MPU6050 hoàn thành phép đo]
     Measure --> Signal[Phát tín hiệu Data Ready]
