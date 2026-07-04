@@ -336,3 +336,4 @@ static void mpu6050_enable_latch_int_rd_clear(void){
 	//Ghi nó vào thanh ghi INT_PIN_CFG
 	mpu6050_write_reg(MPU6050_INT_PIN_CFG, reg_val);
 }
+ //YUP
