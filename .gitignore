@@ -1,0 +1,17 @@
+# Chặn toàn bộ thư mục biên dịch rác
+**/Debug/
+**/Release/
+**/.settings/
+
+# Chặn các file báo cáo tài nguyên và file thực thi tạm
+**/*.su
+**/*.o
+**/*.d
+**/*.launch
+**/*.elf
+**/*.bin
+**/*.hex
+**/*.map
+
+# Chặn file lưu vết metadata của Eclipse
+.metadata/
