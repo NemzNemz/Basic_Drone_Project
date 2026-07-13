@@ -26,6 +26,7 @@
 #include "unstuck_i2c.h"
 #include "mpu6050.h"
 #include "iBUS.h"
+#include "motor.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -123,6 +124,7 @@ int main(void)
   HAL_TIM_Base_Start(&htim3);
   MPU_INIT(&hi2c1);
   fs_i6ab_init(&huart1);
+  Motor_Init(&htim1);
 
   //Hàm tổng hợp các bước check an toàn bay
   Pre_Flight_Check();
@@ -155,11 +157,12 @@ int main(void)
 			  else failsafe_flag = 0;
 		  }
 	  }
-
-	  TIM1->CCR1 = 12500 + (fs_i6.L_UD - 1000) *12.5;
+	  uint16_t target_pwm = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
+/*	  TIM1->CCR1 = 12500 + (fs_i6.L_UD - 1000) *12.5;
 	  TIM1->CCR2 = 12500 + (fs_i6.L_UD - 1000) *12.5;
 	  TIM1->CCR3 = 12500 + (fs_i6.L_UD - 1000) *12.5;
-	  TIM1->CCR4 = 12500 + (fs_i6.L_UD - 1000) *12.5;
+	  TIM1->CCR4 = 12500 + (fs_i6.L_UD - 1000) *12.5;*/
+	  Motor_Set_Speed(target_pwm);
   }
   /* USER CODE END 3 */
 }

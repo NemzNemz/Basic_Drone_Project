@@ -5,6 +5,7 @@
  *      Author: ADMIN
  */
 #include "iBUS.h"
+#include "assert.h"
 
 static UART_HandleTypeDef *ibus_huart;
 uint8_t usart1_rx_data;
@@ -78,6 +79,7 @@ void iBUS_Parse_Byte(uint8_t* data){
 
 void fs_i6ab_init(UART_HandleTypeDef *huart_hw){
 	ibus_huart = huart_hw;
+	assert(ibus_huart != NULL);
 	// Cho mấy cái cờ về 0 hết đã
     ibus_cplt_flag = 0;
     usart1_rx_flag = 0;
