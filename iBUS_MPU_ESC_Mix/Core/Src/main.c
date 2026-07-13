@@ -69,9 +69,10 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void buzz_high(void);
-void buzz_low(void);
-void buzz_ready(void);
+void Pre_Flight_Check(void);
+void Buzzer_Error_Beep(void);
+void Buzzer_Status_Beep(void);
+void Buzzer_Success(void);
 void ESC_Calib(void);
 /* USER CODE END 0 */
 
@@ -123,26 +124,8 @@ int main(void)
   MPU_INIT(&hi2c1);
   fs_i6ab_init(&huart1);
 
-  while(is_iBUS_Received() == 0){
-	  buzz_high();
-  }
-  buzz_ready();
-
-  if(fs_i6.SwB == 2000){
-	  buzz_low();
-	  ESC_Calib();
-	  while(fs_i6.SwB != 1000){
-		  is_iBUS_Received();
-		  buzz_low();
-	  }
-  }
-  buzz_ready();
-
-  //Nếu ga chưa về 0 sau quá trình khởi tạo thì ko thể chạy hàm main, đảm bảo an toàn
-  while(is_iBUS_Throttle_Min()== 0){
-	  buzz_high();
-  }
-  buzz_ready();
+  //Hàm tổng hợp các bước check an toàn bay
+  Pre_Flight_Check();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -167,7 +150,7 @@ int main(void)
 			  //Nếu vào failsafe, nháy con led khác
 			  if(is_failsafe(&fs_i6)!= 0){
 				  failsafe_flag = 1;
-				  buzz_low();
+				  Buzzer_Status_Beep();
 			  }
 			  else failsafe_flag = 0;
 		  }
@@ -227,14 +210,36 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void Pre_Flight_Check(void){
+	while(is_iBUS_Received() == 0){
+		Buzzer_Error_Beep();
+	}
+	Buzzer_Success();
+	
+	if(fs_i6.SwB == 2000){
+		Buzzer_Status_Beep();
+		ESC_Calib();
+		while(fs_i6.SwB != 1000){
+			is_iBUS_Received();
+			Buzzer_Status_Beep();
+		}
+	}
+	Buzzer_Success();
+	
+	//Nếu ga chưa về 0 sau quá trình khởi tạo thì ko thể chạy hàm main, đảm bảo an toàn
+	while(is_iBUS_Throttle_Min()== 0){
+		Buzzer_Error_Beep();
+	}
+	Buzzer_Success();
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  // Kiểm tra chân phát động ngắt có phải là PA2 (GPIO_PIN_2) hay không
+  // Kiểm tra chân phát động ngắt có phải là PA2
   if (GPIO_Pin == GPIO_PIN_2)
   {
     // Phát động lệnh đọc chuỗi 14 bytes không chặn qua ngắt I2C1
-    // Truyền trực tiếp handle vật lý &hi2c1 và địa chỉ thực thể dữ liệu người dùng &mpu_mea
-    HAL_StatusTypeDef status = MPU_TRIGGER_READ_IT(&hi2c1, (MPU_MEASUREMENT*)&mpu_mea);
+    HAL_StatusTypeDef status = MPU_TRIGGER_READ_IT(&hi2c1, &mpu_mea);
 
     // Bẫy lỗi treo bus nếu xuất hiện bằng cách giải vây
     if (status == HAL_BUSY)
@@ -246,17 +251,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-  // Kiểm tra tất định thực thể bus vừa hoàn thành ngắt có phải là I2C1 hay không
+  // Kiểm tra thực thể bus vừa hoàn thành ngắt có phải là I2C1 hay không
   if (hi2c->Instance == I2C1)
   {
-    // Nâng biến cờ toàn cục lên mức hằng số 1 để thông báo dữ liệu thô đã nạp đủ vào RAM
     mpu_data_ready_flag = 1;
   }
 }
 
 //Callback cho nhận data iBUS
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	//Kiểm tra cờ hiệu RXNE có được bật hay chưa, nằm trong UART_SR, bit số 5 RxNE
+
+
 	if(huart->Instance == USART1){
 		usart1_rx_flag = 1;
 		//Chạy hàm đọc 32byte iBUS
@@ -266,7 +271,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 }
 
 // Buzz cao dành cho tín hiệu iBUS
-void buzz_high(void){
+void Buzzer_Error_Beep(void){
 	TIM3->ARR = 99;
 	TIM3->CCR1 = 50; // Duy trì chính xác 50% Duty Cycle cho màng loa rung cực đại
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
@@ -276,7 +281,7 @@ void buzz_high(void){
 	HAL_Delay(200);
 }
 
-void buzz_low(void){
+void Buzzer_Status_Beep(void){
 	TIM3->ARR = 99;
 	TIM3->CCR1 = 50; // Duy trì chính xác 50% Duty Cycle cho màng loa rung cực đại
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
@@ -286,7 +291,8 @@ void buzz_low(void){
 	HAL_Delay(200);
 }
 
-void buzz_ready(void)
+//Hàm AI viết để nghe tiếng như winXP
+void Buzzer_Success(void)
 {
 	TIM3->ARR = 99;
 	TIM3->CCR1 = 35;
