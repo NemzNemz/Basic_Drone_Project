@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "i2c.h"
 #include "tim.h"
 #include "usart.h"
@@ -27,7 +28,6 @@
 #include "mpu6050.h"
 #include "iBUS.h"
 #include "motor.h"
-#include "dma.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -107,6 +107,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_TIM1_Init();
   MX_USART1_UART_Init();
@@ -114,7 +115,6 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM10_Init();
-  MX_DMA_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
