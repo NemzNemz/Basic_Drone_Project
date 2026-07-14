@@ -1,17 +1,37 @@
-# Chặn toàn bộ thư mục biên dịch rác
+# ==========================================
+# 1. Chặn toàn bộ thư mục biên dịch đầu ra (Build Output)
+# ==========================================
 **/Debug/
 **/Release/
-**/.settings/
 
-# Chặn các file báo cáo tài nguyên và file thực thi tạm
-**/*.su
+# ==========================================
+# 2. Chặn các file rác phát sinh khi biên dịch
+# ==========================================
 **/*.o
 **/*.d
-**/*.launch
+**/*.su
+**/*.map
 **/*.elf
 **/*.bin
 **/*.hex
-**/*.map
+**/*.o.d
 
-# Chặn file lưu vết metadata của Eclipse
+# ==========================================
+# 3. Chặn các file cấu hình cá nhân của Eclipse / STM32CubeIDE
+# ==========================================
+**/.settings/
+**/.launches/
+**/*.launch
 .metadata/
+
+# Chặn file lưu trạng thái layout giao diện cá nhân của CubeIDE
+**/*.uvguix.*
+**/Project_Settings/
+
+# ==========================================
+# 4. Giữ lại các file cấu hình dự án quan trọng (Ngoại lệ nếu có)
+# ==========================================
+# Giữ lại .project, .cproject để người khác import dự án là chạy được ngay
+# Giữ lại các file Linker script (.ld) và file cấu hình CubeMX (.ioc)
+!**/*.ld
+!**/*.ioc
