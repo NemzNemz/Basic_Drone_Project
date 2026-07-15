@@ -28,6 +28,7 @@
 #include "mpu6050.h"
 #include "iBUS.h"
 #include "motor.h"
+#include "battery.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -130,8 +131,7 @@ int main(void)
   MPU_INIT(&hi2c1);
   fs_i6ab_init(&huart1);
   Motor_Init(&htim1);
-  //Xài 1 kênh trong 1 chu kì quét, param lenght là 1. Nhiều kênh thì thay số khác
-  HAL_ADC_Start_DMA(&hadc1, &raw_adc_val, 1);
+  BAT_INIT(&hadc1, &raw_adc_val);
 
   //Hàm tổng hợp các bước check an toàn bay
   Pre_Flight_Check();
@@ -145,7 +145,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  //Test tạm 3v3
-	BAT_vol = raw_adc_val * 0.00080566f;
+	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
 	  if (mpu_data_ready_flag == 1)
 	  {
 		  mpu_data_ready_flag = 0;
@@ -167,14 +167,10 @@ int main(void)
 		  }
 	  }
 	  //Gia dinh pin duoi 3v tai chua cam pin that
-	  if(BAT_vol < 3.0f){
+	  if(is_bat_low(BAT_vol)== 1){
 		  Buzzer_Status_Beep();
 	  }
 	  uint16_t target_pwm = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
-/*	  TIM1->CCR1 = 12500 + (fs_i6.L_UD - 1000) *12.5;
-	  TIM1->CCR2 = 12500 + (fs_i6.L_UD - 1000) *12.5;
-	  TIM1->CCR3 = 12500 + (fs_i6.L_UD - 1000) *12.5;
-	  TIM1->CCR4 = 12500 + (fs_i6.L_UD - 1000) *12.5;*/
 	  Motor_Set_Speed(target_pwm);
   }
   /* USER CODE END 3 */
