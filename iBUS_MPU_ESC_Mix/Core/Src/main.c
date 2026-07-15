@@ -61,6 +61,9 @@ EULER_MEASUREMENT eul_mea = {0};
 volatile uint8_t mpu_data_ready_flag = 0;
 
 uint8_t failsafe_flag = 0;
+uint32_t raw_adc_val;
+//Bien đọc điện áp của cục pin
+float BAT_vol;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -127,6 +130,8 @@ int main(void)
   MPU_INIT(&hi2c1);
   fs_i6ab_init(&huart1);
   Motor_Init(&htim1);
+  //Xài 1 kênh trong 1 chu kì quét, param lenght là 1. Nhiều kênh thì thay số khác
+  HAL_ADC_Start_DMA(&hadc1, &raw_adc_val, 1);
 
   //Hàm tổng hợp các bước check an toàn bay
   Pre_Flight_Check();
@@ -139,6 +144,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  //Test tạm 3v3
+	BAT_vol = raw_adc_val * 0.00080566f;
 	  if (mpu_data_ready_flag == 1)
 	  {
 		  mpu_data_ready_flag = 0;
@@ -158,6 +165,10 @@ int main(void)
 			  }
 			  else failsafe_flag = 0;
 		  }
+	  }
+	  //Gia dinh pin duoi 3v tai chua cam pin that
+	  if(BAT_vol < 3.0f){
+		  Buzzer_Status_Beep();
 	  }
 	  uint16_t target_pwm = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
 /*	  TIM1->CCR1 = 12500 + (fs_i6.L_UD - 1000) *12.5;
