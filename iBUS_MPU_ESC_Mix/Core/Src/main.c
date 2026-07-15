@@ -79,6 +79,8 @@ void Pre_Flight_Check(void);
 void Buzzer_Error_Beep(void);
 void Buzzer_Status_Beep(void);
 void Buzzer_Success(void);
+void Buzzer_On(void);
+void Buzzer_Off(void);
 void ESC_Calib(void);
 /* USER CODE END 0 */
 
@@ -144,7 +146,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  //Test tạm 3v3
+	  //Test tạm 3v3!!!!!!
 	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
 	  if (mpu_data_ready_flag == 1)
 	  {
@@ -161,15 +163,15 @@ int main(void)
 			  //Nếu vào failsafe, nháy con led khác
 			  if(is_failsafe(&fs_i6)!= 0){
 				  failsafe_flag = 1;
-				  Buzzer_Status_Beep();
 			  }
 			  else failsafe_flag = 0;
 		  }
 	  }
 	  //Gia dinh pin duoi 3v tai chua cam pin that
-	  if(is_bat_low(BAT_vol)== 1){
-		  Buzzer_Status_Beep();
+	  if(is_bat_low(BAT_vol)== 1 || failsafe_flag == 1){
+		Buzzer_On();
 	  }
+	  else Buzzer_Off();
 	  uint16_t target_pwm = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
 	  Motor_Set_Speed(target_pwm);
   }
@@ -280,6 +282,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		iBUS_Parse_Byte(&usart1_rx_data);
 		HAL_UART_Receive_IT(&huart1, &usart1_rx_data, 1);
 	}
+}
+
+void Buzzer_On(void){
+	TIM3->ARR = 99;
+	TIM3->CCR1 = 50;					
+	TIM3->PSC = 284;				 
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+}
+
+void Buzzer_Off(void){
+	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
 }
 
 // Buzz cao dành cho tín hiệu iBUS
