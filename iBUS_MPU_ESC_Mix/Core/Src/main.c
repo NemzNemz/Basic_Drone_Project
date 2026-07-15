@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "i2c.h"
 #include "tim.h"
 #include "usart.h"
@@ -27,6 +28,7 @@
 #include "mpu6050.h"
 #include "iBUS.h"
 #include "motor.h"
+#include "battery.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -60,6 +62,9 @@ EULER_MEASUREMENT eul_mea = {0};
 volatile uint8_t mpu_data_ready_flag = 0;
 
 uint8_t failsafe_flag = 0;
+uint32_t raw_adc_val;
+//Bien đọc điện áp của cục pin
+float BAT_vol;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -106,6 +111,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_TIM1_Init();
   MX_USART1_UART_Init();
@@ -125,6 +131,7 @@ int main(void)
   MPU_INIT(&hi2c1);
   fs_i6ab_init(&huart1);
   Motor_Init(&htim1);
+  BAT_INIT(&hadc1, &raw_adc_val);
 
   //Hàm tổng hợp các bước check an toàn bay
   Pre_Flight_Check();
@@ -137,6 +144,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  //Test tạm 3v3
+	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
 	  if (mpu_data_ready_flag == 1)
 	  {
 		  mpu_data_ready_flag = 0;
@@ -157,11 +166,11 @@ int main(void)
 			  else failsafe_flag = 0;
 		  }
 	  }
+	  //Gia dinh pin duoi 3v tai chua cam pin that
+	  if(is_bat_low(BAT_vol)== 1){
+		  Buzzer_Status_Beep();
+	  }
 	  uint16_t target_pwm = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
-/*	  TIM1->CCR1 = 12500 + (fs_i6.L_UD - 1000) *12.5;
-	  TIM1->CCR2 = 12500 + (fs_i6.L_UD - 1000) *12.5;
-	  TIM1->CCR3 = 12500 + (fs_i6.L_UD - 1000) *12.5;
-	  TIM1->CCR4 = 12500 + (fs_i6.L_UD - 1000) *12.5;*/
 	  Motor_Set_Speed(target_pwm);
   }
   /* USER CODE END 3 */

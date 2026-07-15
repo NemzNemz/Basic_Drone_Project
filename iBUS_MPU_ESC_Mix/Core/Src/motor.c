@@ -22,5 +22,3 @@ void Motor_Set_Speed(uint16_t speed){
 	esc_htim->Instance->CCR3 = speed;
 	esc_htim->Instance->CCR4 = speed;
 }
-
-
