@@ -1,1 +1,0 @@
-![Sơ đồ tổng quan MPU6050](img/mpu_ovr_flowchart.png)
