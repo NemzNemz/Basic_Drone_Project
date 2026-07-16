@@ -134,7 +134,7 @@ int main(void)
   fs_i6ab_init(&huart1);
   Motor_Init(&htim1);
   BAT_INIT(&hadc1, &raw_adc_val);
-
+  MPU_CALIB_GYRO(500, &mpu_mea);
   //Hàm tổng hợp các bước check an toàn bay
   Pre_Flight_Check();
   /* USER CODE END 2 */
@@ -168,7 +168,7 @@ int main(void)
 		  }
 	  }
 	  //Gia dinh pin duoi 3v tai chua cam pin that
-	  if(is_bat_low(BAT_vol)== 1 || failsafe_flag == 1){
+	  if(is_bat_low(BAT_vol) == 1 || failsafe_flag == 1){
 		Buzzer_On();
 	  }
 	  else Buzzer_Off();
