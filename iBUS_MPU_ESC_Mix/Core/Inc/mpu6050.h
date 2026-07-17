@@ -60,6 +60,8 @@ void MPU_RAW_MEASUREMENT(MPU_MEASUREMENT*);
 void MPU_SET_GYRO_BIAS(float x, float y, float z);
 //Chuyển thành các góc thái độ
 void CONVERT_TO_ORIENT(MPU_MEASUREMENT*, EULER_MEASUREMENT*);
+//Hàm Calib cho gyro tránh trôi góc dần
+void MPU_CALIB_GYRO(uint16_t samples, MPU_MEASUREMENT* mpu_mea_ptr);
 /*
 Hàm phát động đọc ngắt chân INT
 Kiểu HAL_StatusTypeDef này tương tự enum, chỉ trả về 4 trạng thái sau:
