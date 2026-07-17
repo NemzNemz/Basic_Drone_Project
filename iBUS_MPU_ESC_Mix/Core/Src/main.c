@@ -62,6 +62,10 @@ EULER_MEASUREMENT eul_mea = {0};
 volatile uint8_t mpu_data_ready_flag = 0;
 
 uint8_t failsafe_flag = 0;
+//Mặc định là lock ko cho chạy motor
+uint8_t motor_lock_flag = 1;
+uint16_t ibus_prev_val =0;
+
 uint32_t raw_adc_val;
 //Bien đọc điện áp của cục pin
 float BAT_vol;
@@ -129,14 +133,15 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
   HAL_TIM_Base_Start(&htim2);
-  HAL_TIM_Base_Start(&htim3);
+
   MPU_INIT(&hi2c1);
   fs_i6ab_init(&huart1);
   Motor_Init(&htim1);
   BAT_INIT(&hadc1, &raw_adc_val);
-
+  MPU_CALIB_GYRO(100, &mpu_mea);
   //Hàm tổng hợp các bước check an toàn bay
   Pre_Flight_Check();
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -146,8 +151,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  //Test tạm 3v3!!!!!!
-	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
 	  if (mpu_data_ready_flag == 1)
 	  {
 		  mpu_data_ready_flag = 0;
@@ -155,6 +158,7 @@ int main(void)
 		  MPU_RAW_MEASUREMENT(&mpu_mea);
 		  CONVERT_TO_ORIENT(&mpu_mea, &eul_mea);
 	  }
+
 	  if(ibus_cplt_flag == 1){
 		  // Reset cờ truyền frame ibus
 		  ibus_cplt_flag = 0;
@@ -167,13 +171,37 @@ int main(void)
 			  else failsafe_flag = 0;
 		  }
 	  }
-	  //Gia dinh pin duoi 3v tai chua cam pin that
-	  if(is_bat_low(BAT_vol)== 1 || failsafe_flag == 1){
+	  //Chuyển đổi tín hiệu tay cầm thành xung PWM
+	  uint16_t target_pwm = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
+	  
+	  //Nếu như gạt cần bay và ga thấp nhất thì mới cho bay + gỡ cờ khoá
+	  if(fs_i6.SwA == 2000 && is_iBUS_Throttle_Min() == 1) {
+		motor_lock_flag = 0;
+		Buzzer_Off();
+		Motor_Min_Throttle(&htim1);
+	  } 
+
+	  //Nếu như gạt cần bay mà ga vẫn cao (nên ko được trả cờ về 0)
+	  if(fs_i6.SwA == 2000 && motor_lock_flag == 1) {
 		Buzzer_On();
 	  }
-	  else Buzzer_Off();
-	  uint16_t target_pwm = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
-	  Motor_Set_Speed(target_pwm);
+	  
+	  //Gạt cần SwA lên là khoá, và tắt kèn
+	  if(fs_i6.SwA == 1000) {
+		  motor_lock_flag = 1;
+		  Buzzer_Off();
+	  }
+	  if(motor_lock_flag == 1){
+	  	 Motor_Lock(&htim1);
+	  }
+	  else Motor_Set_Speed(target_pwm);
+	  
+	  //Test tạm 3v3!!!!!!
+	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
+	  //Gia dinh pin duoi 3v tai chua cam pin that
+	  if(is_bat_low(BAT_vol) == 1 || failsafe_flag == 1){
+		Buzzer_On();
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -241,7 +269,8 @@ void Pre_Flight_Check(void){
 	Buzzer_Success();
 	
 	//Nếu ga chưa về 0 sau quá trình khởi tạo thì ko thể chạy hàm main, đảm bảo an toàn
-	while(is_iBUS_Throttle_Min()== 0){
+	//Nếu ga về 0 mà chưa chuyển về Disarm thì cũng khoá ko cho bay
+	while(is_iBUS_Throttle_Min()== 0 || fs_i6.SwA == 2000){
 		Buzzer_Error_Beep();
 	}
 	Buzzer_Success();
@@ -288,11 +317,11 @@ void Buzzer_On(void){
 	TIM3->ARR = 99;
 	TIM3->CCR1 = 50;					
 	TIM3->PSC = 284;				 
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	//HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 }
 
 void Buzzer_Off(void){
-	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+	TIM3->CCR1 = 0;
 }
 
 // Buzz cao dành cho tín hiệu iBUS
