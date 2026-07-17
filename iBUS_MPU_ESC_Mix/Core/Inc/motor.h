@@ -11,5 +11,8 @@
 #include "main.h"
 void Motor_Set_Speed(uint16_t speed);
 void Motor_Init(TIM_HandleTypeDef *hw_esc_htim);
+void Motor_Lock(TIM_HandleTypeDef *hw_esc_htim);
+void Motor_Min_Throttle(TIM_HandleTypeDef *hw_esc_htim);
+
 
 #endif /* INC_MOTOR_H_ */
