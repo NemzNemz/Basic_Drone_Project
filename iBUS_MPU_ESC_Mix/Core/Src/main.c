@@ -60,6 +60,8 @@ uint32_t tim1_ch4 = 12500;
 MPU_MEASUREMENT mpu_mea = {0};
 EULER_MEASUREMENT eul_mea = {0};
 volatile uint8_t mpu_data_ready_flag = 0;
+volatile uint8_t ibus_loss_connect_flag = 0;
+volatile uint8_t ibus_loss_connect_cnt =0;
 
 uint8_t failsafe_flag = 0;
 //Mặc định là lock ko cho chạy motor
@@ -86,6 +88,7 @@ void Buzzer_Success(void);
 void Buzzer_On(void);
 void Buzzer_Off(void);
 void ESC_Calib(void);
+void Motor_Safety(uint16_t set_pwm);
 /* USER CODE END 0 */
 
 /**
@@ -125,24 +128,30 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM10_Init();
+  MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
+  //Timer cho ESC
   HAL_TIM_Base_Start(&htim1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
+  //Timer cho unstuck_i2c hàm nanos
   HAL_TIM_Base_Start(&htim2);
+
+  //Timer dành cho check connect RX vật lý, chạy ngắt 500Hz
+  HAL_TIM_Base_Start_IT(&htim11);
 
   MPU_INIT(&hi2c1);
   fs_i6ab_init(&huart1);
   Motor_Init(&htim1);
   BAT_INIT(&hadc1, &raw_adc_val);
-
   MPU_CALIB_GYRO(100, &mpu_mea);
 
   //Hàm tổng hợp các bước check an toàn bay
   Pre_Flight_Check();
+  //Timer cho cái còi lởm
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
@@ -166,7 +175,9 @@ int main(void)
 		  ibus_cplt_flag = 0;
 		  if(ibus_check_sum(&ibus_rx_buf[0], 32) == 1){
 			  ia6b_decode_data(&ibus_rx_buf[0], &fs_i6);
-			  //Nếu vào failsafe, nháy con led khác
+			  ibus_loss_connect_cnt = 0;
+			  ibus_loss_connect_flag = 0;
+			  //Nếu
 			  if(is_failsafe(&fs_i6)!= 0){
 				  failsafe_flag = 1;
 			  }
@@ -175,35 +186,16 @@ int main(void)
 	  }
 	  //Chuyển đổi tín hiệu tay cầm thành xung PWM
 	  uint16_t target_pwm = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
-	  
-	  //Nếu như gạt cần bay và ga thấp nhất thì mới cho bay + gỡ cờ khoá
-	  if(fs_i6.SwA == 2000 && is_iBUS_Throttle_Min() == 1) {
-		motor_lock_flag = 0;
-		Buzzer_Off();
-		Motor_Min_Throttle(&htim1);
-	  } 
-
-	  //Nếu như gạt cần bay mà ga vẫn cao (nên ko được trả cờ về 0)
-	  if(fs_i6.SwA == 2000 && motor_lock_flag == 1) {
-		Buzzer_On();
-	  }
-	  
-	  //Gạt cần SwA lên là khoá, và tắt kèn
-	  if(fs_i6.SwA == 1000) {
-		  motor_lock_flag = 1;
-		  Buzzer_Off();
-	  }
-	  if(motor_lock_flag == 1){
-	  	 Motor_Lock(&htim1);
-	  }
-	  else Motor_Set_Speed(target_pwm);
+	  Motor_Safety(target_pwm);
 	  
 	  //Test tạm 3v3!!!!!!
 	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
-	  //Gia dinh pin duoi 3v tai chua cam pin that
-	  if(is_bat_low(BAT_vol) == 1 || failsafe_flag == 1){
+
+	  //Nếu pin yếu thì còi cho biết còn bay về
+	  if(is_bat_low(BAT_vol) == 1){
 		Buzzer_On();
 	  }
+
   }
   /* USER CODE END 3 */
 }
@@ -394,6 +386,52 @@ void ESC_Calib(){
 	TIM1->CCR3 = 12500;
 	TIM1->CCR4 = 12500;
 	HAL_Delay(8000);
+}
+
+void Motor_Safety(uint16_t set_pwm){
+	  //Nếu như gạt cần bay và ga thấp nhất thì mới cho bay + gỡ cờ khoá
+	  if(fs_i6.SwA == 2000 && is_iBUS_Throttle_Min() == 1) {
+		motor_lock_flag = 0;
+		Buzzer_Off();
+	    //Động cơ quay chậm để cho biết sẵn sàng
+		Motor_Min_Throttle(&htim1);
+	  }
+
+	  //Nếu như gạt cần bay XUỐNG (SwA = 2000) nhưng ga VẪN CAO
+	  if(fs_i6.SwA == 2000 && motor_lock_flag == 1) {
+		Buzzer_On();
+	  }
+
+	  //Gạt cần SwA lên là khoá, và tắt kèn
+	  if(fs_i6.SwA == 1000) {
+		  motor_lock_flag = 1;
+		  Buzzer_Off();
+	  }
+
+	  //Nếu cờ lock đang bật thì khoá động cơ
+	  if(motor_lock_flag == 1){
+	  	 Motor_Lock(&htim1);
+	  }
+
+	  //Nếu bất kì điều kiện nào trong đây được kích hoạt thì báo còi + giảm tốc lực
+	  else if(failsafe_flag == 1 || ibus_loss_connect_flag == 1){
+		Buzzer_On();
+		Motor_Min_Throttle(&htim1);
+	  }
+	  //Thoãa hết thì bay
+	  else Motor_Set_Speed(set_pwm);
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	//Boi vi ngat nao cung nhay vao ham nay, nen phai check xem co phai dung TIM khong?
+	if (htim->Instance == htim11.Instance) {
+		ibus_loss_connect_cnt++;
+		if (ibus_loss_connect_cnt >= 250) {
+			//Bật cờ gì đó ở đây
+			ibus_loss_connect_flag = 1;
+			ibus_loss_connect_cnt = 0;
+		}
+	}
 }
 
 /* USER CODE END 4 */
