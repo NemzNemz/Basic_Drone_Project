@@ -140,6 +140,8 @@ int main(void)
   //Timer cho unstuck_i2c hàm nanos
   HAL_TIM_Base_Start(&htim2);
 
+  //Timer dành cho PID
+  HAL_TIM_Base_Start_IT(&htim10);
   //Timer dành cho check connect RX vật lý, chạy ngắt 500Hz
   HAL_TIM_Base_Start_IT(&htim11);
 
@@ -431,6 +433,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			ibus_loss_connect_flag = 1;
 			ibus_loss_connect_cnt = 0;
 		}
+	}
+	//Nếu là ngắt TIM10 cho PID thì đảo chân để test cái, mốt xoá sau
+	if (htim->Instance == htim10.Instance){
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 	}
 }
 
