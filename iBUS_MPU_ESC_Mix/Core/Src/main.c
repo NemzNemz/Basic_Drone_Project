@@ -141,8 +141,6 @@ int main(void)
 
   MPU_CALIB_GYRO(100, &mpu_mea);
 
-  MPU_CALIB_GYRO(500, &mpu_mea);
-
   //Hàm tổng hợp các bước check an toàn bay
   Pre_Flight_Check();
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
