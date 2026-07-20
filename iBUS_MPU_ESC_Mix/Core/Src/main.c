@@ -68,9 +68,16 @@ uint8_t failsafe_flag = 0;
 uint8_t motor_lock_flag = 1;
 uint16_t ibus_prev_val =0;
 
+//Cờ cho ngắt PID
+uint8_t pid_flag = 0;
 uint32_t raw_adc_val;
 //Bien đọc điện áp của cục pin
 float BAT_vol;
+
+uint16_t M1 = 0;
+uint16_t M2 = 0;
+uint16_t M3 = 0;
+uint16_t M4 = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -188,7 +195,37 @@ int main(void)
 	  }
 	  //Chuyển đổi tín hiệu tay cầm thành xung PWM
 	  uint16_t target_pwm = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
+
+	  uint16_t target_pwm_m1 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f + 
+	  							(fs_i6.R_UD - 1500) * 5.0f + 
+	  							(fs_i6.R_RL - 1500) * 5.0f -
+	  							(fs_i6.L_RL - 1500) * 5.0f);
+	  
+	  uint16_t target_pwm_m2 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f - 
+	  							(fs_i6.R_UD - 1500) * 5.0f + 
+	  							(fs_i6.R_RL - 1500) * 5.0f +
+	  							(fs_i6.L_RL - 1500) * 5.0f);
+	  
+	  uint16_t target_pwm_m3 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f - 
+	  							(fs_i6.R_UD - 1500) * 5.0f - 
+	  							(fs_i6.R_RL - 1500) * 5.0f -
+	  							(fs_i6.L_RL - 1500) * 5.0f);
+
+	  uint16_t target_pwm_m4 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f + 
+	  							(fs_i6.R_UD - 1500) * 5.0f - 
+	  							(fs_i6.R_RL - 1500) * 5.0f +
+	  							(fs_i6.L_RL - 1500) * 5.0f);
+	  
+	  //uint16_t target_throttle = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
+	  //uint16_t target_yaw = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
+	  //uint16_t target_pitch = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
+	  //uint16_t target_roll = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
 	  Motor_Safety(target_pwm);
+	  //NHỚ DỤC ĐÁM NÀY VÀO HÀM SAFETY, Sửa hàm SET_SPEED thành struct hoặc 4 đối số
+	  	TIM1->CCR1 = M1;
+	  	TIM1->CCR2 = M2;
+	  	TIM1->CCR3 = M3;
+	  	TIM1->CCR4 = M4;
 	  
 	  //Test tạm 3v3!!!!!!
 	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
@@ -198,6 +235,13 @@ int main(void)
 		Buzzer_On();
 	  }
 
+	  if(pid_flag == 1){
+		pid_flag = 0;
+		M1 = target_pwm_m1 > 25000 ? 25000 : target_pwm_m1 < 13000 ? 13000 : target_pwm_m1;
+		M2 = target_pwm_m2 > 25000 ? 25000 : target_pwm_m2 < 13000 ? 13000 : target_pwm_m2;
+		M3 = target_pwm_m3 > 25000 ? 25000 : target_pwm_m3 < 13000 ? 13000 : target_pwm_m3;
+		M4 = target_pwm_m4 > 25000 ? 25000 : target_pwm_m4 < 13000 ? 13000 : target_pwm_m4;
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -437,6 +481,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	//Nếu là ngắt TIM10 cho PID thì đảo chân để test cái, mốt xoá sau
 	if (htim->Instance == htim10.Instance){
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+		pid_flag = 1;
 	}
 }
 
