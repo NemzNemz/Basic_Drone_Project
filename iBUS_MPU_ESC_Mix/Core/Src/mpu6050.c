@@ -2,7 +2,7 @@
  * mpu6050.c
  *
  *  Created on: Jun 1, 2026
- *      Author: ADMIN
+ *      Author: Nemz
  */
 
 #include "mpu6050.h"
@@ -51,12 +51,12 @@ void CONVERT_TO_ORIENT(MPU_MEASUREMENT* mpu_mea_ptr, EULER_MEASUREMENT* eul_mea_
     const float ALPHA   = 0.98f;
 
     // Goc Pitch va Roll lay tu Accel
-    float roll_accel = atan2f(-mpu_mea_ptr->accel.x,
-                              sqrtf(mpu_mea_ptr->accel.y*mpu_mea_ptr->accel.y +
+    float roll_accel = atan2f(-mpu_mea_ptr->accel.y,
+                              sqrtf(mpu_mea_ptr->accel.x*mpu_mea_ptr->accel.x +
                                     mpu_mea_ptr->accel.z*mpu_mea_ptr->accel.z));
 
-    float pitch_accel = atan2f(mpu_mea_ptr->accel.y,
-                               sqrtf(mpu_mea_ptr->accel.x*mpu_mea_ptr->accel.x +
+    float pitch_accel = atan2f(-mpu_mea_ptr->accel.x,
+                               sqrtf(mpu_mea_ptr->accel.y*mpu_mea_ptr->accel.y +
                                      mpu_mea_ptr->accel.z*mpu_mea_ptr->accel.z));
 
     // Chuuyển sang rad/s cho giống bên MPU_RAW_MEA
@@ -64,8 +64,8 @@ void CONVERT_TO_ORIENT(MPU_MEASUREMENT* mpu_mea_ptr, EULER_MEASUREMENT* eul_mea_
     float pitch_prev = eul_mea_ptr->pitch * DEG_TO_RAD;
 
     //Goc Pitch va Roll lay tu Gyro
-    float roll_gyro  = roll_prev  + mpu_mea_ptr->gyro.x * MPU_DT;
-    float pitch_gyro = pitch_prev + mpu_mea_ptr->gyro.y * MPU_DT;
+    float roll_gyro  = roll_prev  + mpu_mea_ptr->gyro.y * MPU_DT;
+    float pitch_gyro = pitch_prev - mpu_mea_ptr->gyro.x * MPU_DT;
 
     // Dung hợp, by MarkSherstan/CompFilter/Fusion
     float roll_fused  = ALPHA * roll_gyro  + (1.0f - ALPHA) * roll_accel;

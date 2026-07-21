@@ -59,9 +59,19 @@ uint32_t tim1_ch4 = 12500;
 
 MPU_MEASUREMENT mpu_mea = {0};
 EULER_MEASUREMENT eul_mea = {0};
+MOTOR motor_speed = {12500, 12500, 12500, 12500};
+
 volatile uint8_t mpu_data_ready_flag = 0;
+volatile uint8_t ibus_loss_connect_flag = 0;
+volatile uint8_t ibus_loss_connect_cnt =0;
 
 uint8_t failsafe_flag = 0;
+//Mặc định là lock ko cho chạy motor
+uint8_t motor_lock_flag = 1;
+uint16_t ibus_prev_val =0;
+
+//Cờ cho ngắt PID
+uint8_t pid_flag = 0;
 uint32_t raw_adc_val;
 //Bien đọc điện áp của cục pin
 float BAT_vol;
@@ -82,6 +92,7 @@ void Buzzer_Success(void);
 void Buzzer_On(void);
 void Buzzer_Off(void);
 void ESC_Calib(void);
+void Motor_Safety(MOTOR *mt_ptr);
 /* USER CODE END 0 */
 
 /**
@@ -121,22 +132,33 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM10_Init();
+  MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
+  //Timer cho ESC
   HAL_TIM_Base_Start(&htim1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
+  //Timer cho unstuck_i2c hàm nanos
   HAL_TIM_Base_Start(&htim2);
-  HAL_TIM_Base_Start(&htim3);
+
+  //Timer dành cho PID
+  HAL_TIM_Base_Start_IT(&htim10);
+  //Timer dành cho check connect RX vật lý, chạy ngắt 500Hz
+  HAL_TIM_Base_Start_IT(&htim11);
+
   MPU_INIT(&hi2c1);
   fs_i6ab_init(&huart1);
   Motor_Init(&htim1);
   BAT_INIT(&hadc1, &raw_adc_val);
-  MPU_CALIB_GYRO(500, &mpu_mea);
+  MPU_CALIB_GYRO(100, &mpu_mea);
+
   //Hàm tổng hợp các bước check an toàn bay
   Pre_Flight_Check();
+  //Timer cho cái còi lởm
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -146,8 +168,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  //Test tạm 3v3!!!!!!
-	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
 	  if (mpu_data_ready_flag == 1)
 	  {
 		  mpu_data_ready_flag = 0;
@@ -155,25 +175,55 @@ int main(void)
 		  MPU_RAW_MEASUREMENT(&mpu_mea);
 		  CONVERT_TO_ORIENT(&mpu_mea, &eul_mea);
 	  }
+
 	  if(ibus_cplt_flag == 1){
 		  // Reset cờ truyền frame ibus
 		  ibus_cplt_flag = 0;
 		  if(ibus_check_sum(&ibus_rx_buf[0], 32) == 1){
 			  ia6b_decode_data(&ibus_rx_buf[0], &fs_i6);
-			  //Nếu vào failsafe, nháy con led khác
+			  ibus_loss_connect_cnt = 0;
+			  ibus_loss_connect_flag = 0;
+			  //Nếu
 			  if(is_failsafe(&fs_i6)!= 0){
 				  failsafe_flag = 1;
 			  }
 			  else failsafe_flag = 0;
 		  }
 	  }
-	  //Gia dinh pin duoi 3v tai chua cam pin that
-	  if(is_bat_low(BAT_vol) == 1 || failsafe_flag == 1){
+	  Motor_Safety(&motor_speed);
+	  
+	  //Test tạm 3v3!!!!!!
+	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
+
+	  //Nếu pin yếu thì còi cho biết còn bay về
+	  if(is_bat_low(BAT_vol) == 1){
 		Buzzer_On();
 	  }
-	  else Buzzer_Off();
-	  uint16_t target_pwm = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
-	  Motor_Set_Speed(target_pwm);
+
+	  if(pid_flag == 1){
+		pid_flag = 0;
+			  //Chuyển đổi tín hiệu tay cầm thành xung PWM
+	  uint16_t target_pwm_m1 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f + 
+	  							(fs_i6.R_UD - 1500) * 5.0f + 
+	  							(fs_i6.R_RL - 1500) * 5.0f -
+	  							(fs_i6.L_RL - 1500) * 5.0f);
+	  
+	  uint16_t target_pwm_m2 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f - 
+	  							(fs_i6.R_UD - 1500) * 5.0f + 
+	  							(fs_i6.R_RL - 1500) * 5.0f +
+	  							(fs_i6.L_RL - 1500) * 5.0f);
+	  
+	  uint16_t target_pwm_m3 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f - 
+	  							(fs_i6.R_UD - 1500) * 5.0f - 
+	  							(fs_i6.R_RL - 1500) * 5.0f -
+	  							(fs_i6.L_RL - 1500) * 5.0f);
+
+	  uint16_t target_pwm_m4 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f + 
+	  							(fs_i6.R_UD - 1500) * 5.0f - 
+	  							(fs_i6.R_RL - 1500) * 5.0f +
+	  							(fs_i6.L_RL - 1500) * 5.0f);
+	  Motor_Update_Values(&motor_speed, target_pwm_m1, target_pwm_m2, target_pwm_m3, target_pwm_m4);
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -241,7 +291,8 @@ void Pre_Flight_Check(void){
 	Buzzer_Success();
 	
 	//Nếu ga chưa về 0 sau quá trình khởi tạo thì ko thể chạy hàm main, đảm bảo an toàn
-	while(is_iBUS_Throttle_Min()== 0){
+	//Nếu ga về 0 mà chưa chuyển về Disarm thì cũng khoá ko cho bay
+	while(is_iBUS_Throttle_Min()== 0 || fs_i6.SwA == 2000){
 		Buzzer_Error_Beep();
 	}
 	Buzzer_Success();
@@ -288,11 +339,11 @@ void Buzzer_On(void){
 	TIM3->ARR = 99;
 	TIM3->CCR1 = 50;					
 	TIM3->PSC = 284;				 
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	//HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 }
 
 void Buzzer_Off(void){
-	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+	TIM3->CCR1 = 0;
 }
 
 // Buzz cao dành cho tín hiệu iBUS
@@ -363,6 +414,57 @@ void ESC_Calib(){
 	TIM1->CCR3 = 12500;
 	TIM1->CCR4 = 12500;
 	HAL_Delay(8000);
+}
+
+void Motor_Safety(MOTOR *mt_ptr){
+	  //Nếu như gạt cần bay và ga thấp nhất thì mới cho bay + gỡ cờ khoá
+	  if(fs_i6.SwA == 2000 && is_iBUS_Throttle_Min() == 1) {
+		motor_lock_flag = 0;
+		Buzzer_Off();
+	    //Động cơ quay chậm để cho biết sẵn sàng
+		Motor_Min_Throttle(&htim1);
+	  }
+
+	  //Nếu như gạt cần bay XUỐNG (SwA = 2000) nhưng ga VẪN CAO
+	  if(fs_i6.SwA == 2000 && motor_lock_flag == 1) {
+		Buzzer_On();
+	  }
+
+	  //Gạt cần SwA lên là khoá, và tắt kèn
+	  if(fs_i6.SwA == 1000) {
+		  motor_lock_flag = 1;
+		  Buzzer_Off();
+	  }
+
+	  //Nếu cờ lock đang bật thì khoá động cơ
+	  if(motor_lock_flag == 1){
+	  	 Motor_Lock(&htim1);
+	  }
+
+	  //Nếu bất kì điều kiện nào trong đây được kích hoạt thì báo còi + giảm tốc lực
+	  else if(failsafe_flag == 1 || ibus_loss_connect_flag == 1){
+		Buzzer_On();
+		Motor_Min_Throttle(&htim1);
+	  }
+	  //Thoãa hết thì bay
+	  else Motor_Set_Speed(mt_ptr);
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	//Boi vi ngat nao cung nhay vao ham nay, nen phai check xem co phai dung TIM khong?
+	if (htim->Instance == htim11.Instance) {
+		ibus_loss_connect_cnt++;
+		if (ibus_loss_connect_cnt >= 250) {
+			//Bật cờ gì đó ở đây
+			ibus_loss_connect_flag = 1;
+			ibus_loss_connect_cnt = 0;
+		}
+	}
+	//Nếu là ngắt TIM10 cho PID thì đảo chân để test cái, mốt xoá sau
+	if (htim->Instance == htim10.Instance){
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+		pid_flag = 1;
+	}
 }
 
 /* USER CODE END 4 */
