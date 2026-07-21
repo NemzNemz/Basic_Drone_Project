@@ -59,6 +59,8 @@ uint32_t tim1_ch4 = 12500;
 
 MPU_MEASUREMENT mpu_mea = {0};
 EULER_MEASUREMENT eul_mea = {0};
+MOTOR motor_speed = {12500, 12500, 12500, 12500};
+
 volatile uint8_t mpu_data_ready_flag = 0;
 volatile uint8_t ibus_loss_connect_flag = 0;
 volatile uint8_t ibus_loss_connect_cnt =0;
@@ -73,11 +75,6 @@ uint8_t pid_flag = 0;
 uint32_t raw_adc_val;
 //Bien đọc điện áp của cục pin
 float BAT_vol;
-
-uint16_t M1 = 0;
-uint16_t M2 = 0;
-uint16_t M3 = 0;
-uint16_t M4 = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,7 +92,7 @@ void Buzzer_Success(void);
 void Buzzer_On(void);
 void Buzzer_Off(void);
 void ESC_Calib(void);
-void Motor_Safety(uint16_t set_pwm);
+void Motor_Safety(MOTOR *mt_ptr);
 /* USER CODE END 0 */
 
 /**
@@ -193,9 +190,19 @@ int main(void)
 			  else failsafe_flag = 0;
 		  }
 	  }
-	  //Chuyển đổi tín hiệu tay cầm thành xung PWM
-	  uint16_t target_pwm = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
+	  Motor_Safety(&motor_speed);
+	  
+	  //Test tạm 3v3!!!!!!
+	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
 
+	  //Nếu pin yếu thì còi cho biết còn bay về
+	  if(is_bat_low(BAT_vol) == 1){
+		Buzzer_On();
+	  }
+
+	  if(pid_flag == 1){
+		pid_flag = 0;
+			  //Chuyển đổi tín hiệu tay cầm thành xung PWM
 	  uint16_t target_pwm_m1 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f + 
 	  							(fs_i6.R_UD - 1500) * 5.0f + 
 	  							(fs_i6.R_RL - 1500) * 5.0f -
@@ -215,32 +222,7 @@ int main(void)
 	  							(fs_i6.R_UD - 1500) * 5.0f - 
 	  							(fs_i6.R_RL - 1500) * 5.0f +
 	  							(fs_i6.L_RL - 1500) * 5.0f);
-	  
-	  //uint16_t target_throttle = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
-	  //uint16_t target_yaw = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
-	  //uint16_t target_pitch = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
-	  //uint16_t target_roll = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f);
-	  Motor_Safety(target_pwm);
-	  //NHỚ DỤC ĐÁM NÀY VÀO HÀM SAFETY, Sửa hàm SET_SPEED thành struct hoặc 4 đối số
-	  	TIM1->CCR1 = M1;
-	  	TIM1->CCR2 = M2;
-	  	TIM1->CCR3 = M3;
-	  	TIM1->CCR4 = M4;
-	  
-	  //Test tạm 3v3!!!!!!
-	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
-
-	  //Nếu pin yếu thì còi cho biết còn bay về
-	  if(is_bat_low(BAT_vol) == 1){
-		Buzzer_On();
-	  }
-
-	  if(pid_flag == 1){
-		pid_flag = 0;
-		M1 = target_pwm_m1 > 25000 ? 25000 : target_pwm_m1 < 13000 ? 13000 : target_pwm_m1;
-		M2 = target_pwm_m2 > 25000 ? 25000 : target_pwm_m2 < 13000 ? 13000 : target_pwm_m2;
-		M3 = target_pwm_m3 > 25000 ? 25000 : target_pwm_m3 < 13000 ? 13000 : target_pwm_m3;
-		M4 = target_pwm_m4 > 25000 ? 25000 : target_pwm_m4 < 13000 ? 13000 : target_pwm_m4;
+	  Motor_Update_Values(&motor_speed, target_pwm_m1, target_pwm_m2, target_pwm_m3, target_pwm_m4);
 	  }
   }
   /* USER CODE END 3 */
@@ -434,7 +416,7 @@ void ESC_Calib(){
 	HAL_Delay(8000);
 }
 
-void Motor_Safety(uint16_t set_pwm){
+void Motor_Safety(MOTOR *mt_ptr){
 	  //Nếu như gạt cần bay và ga thấp nhất thì mới cho bay + gỡ cờ khoá
 	  if(fs_i6.SwA == 2000 && is_iBUS_Throttle_Min() == 1) {
 		motor_lock_flag = 0;
@@ -465,7 +447,7 @@ void Motor_Safety(uint16_t set_pwm){
 		Motor_Min_Throttle(&htim1);
 	  }
 	  //Thoãa hết thì bay
-	  else Motor_Set_Speed(set_pwm);
+	  else Motor_Set_Speed(mt_ptr);
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
