@@ -2,7 +2,7 @@
  * mpu6050.c
  *
  *  Created on: Jun 1, 2026
- *      Author: ADMIN
+ *      Author: Nemz
  */
 
 #include "mpu6050.h"
