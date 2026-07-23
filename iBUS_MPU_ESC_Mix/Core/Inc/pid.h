@@ -18,8 +18,9 @@ typedef struct{
 	float PID_OUT;
 	float error_sum;
 	float prev_val;
+	float IIR_derivative;
 }PID_t;
 
-void test_pid_pitch(uint8_t mt_flag ,uint16_t rc_raw_pitch, uint16_t rc_raw_throttle, float gyro_x, float euler_pitch, PID_t *outer, PID_t *inner);
+void pid_pitch_roll(uint8_t mt_flag ,uint16_t rc_raw_pitch, uint16_t rc_raw_throttle, float gyro_x, float euler_pitch, PID_t *outer, PID_t *inner);
 
 #endif /* INC_PID_H_ */
