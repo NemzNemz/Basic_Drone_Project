@@ -29,6 +29,7 @@
 #include "iBUS.h"
 #include "motor.h"
 #include "battery.h"
+#include "pid.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -56,6 +57,10 @@ uint32_t tim1_ch1 = 12500;
 uint32_t tim1_ch2 = 12500;
 uint32_t tim1_ch3 = 12500;
 uint32_t tim1_ch4 = 12500;
+
+float Pitch_PID_Demo = 0;
+PID_t pid_outer = {.KP = 20.0f, .KI = 0.05f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_inner = {.KP = 55.5f, .KI = 0.01f, .KD = 1.005f, .error_sum = 0.0f, .prev_val = 0.0f, .PID_OUT = 0.0f};
 
 MPU_MEASUREMENT mpu_mea = {0};
 EULER_MEASUREMENT eul_mea = {0};
@@ -202,27 +207,39 @@ int main(void)
 
 	  if(pid_flag == 1){
 		pid_flag = 0;
-			  //Chuyển đổi tín hiệu tay cầm thành xung PWM
-	  uint16_t target_pwm_m1 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f + 
-	  							(fs_i6.R_UD - 1500) * 5.0f + 
-	  							(fs_i6.R_RL - 1500) * 5.0f -
+		//PID Kép trục Pitch
+		test_pid_pitch(motor_lock_flag,
+		               fs_i6.R_UD,
+		               fs_i6.L_UD,
+		               mpu_mea.gyro.x,
+		               eul_mea.pitch,
+		               &pid_outer,
+		               &pid_inner);
+		
+		Pitch_PID_Demo = pid_inner.PID_OUT;
+				
+		//Chuyển đổi tín hiệu tay cầm thành xung PWM
+		//SAU NÀY GÓC PITCH ROLL GIỚI HẠN +-30 độ, YAW 180 độ /s
+	  	uint16_t target_pwm_m1 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f + 
+	  							Pitch_PID_Demo + 
+	  							(fs_i6.R_RL - 1500) * 3.0f -
 	  							(fs_i6.L_RL - 1500) * 5.0f);
 	  
-	  uint16_t target_pwm_m2 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f - 
-	  							(fs_i6.R_UD - 1500) * 5.0f + 
-	  							(fs_i6.R_RL - 1500) * 5.0f +
+	  	uint16_t target_pwm_m2 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f - 
+								Pitch_PID_Demo + 
+	  							(fs_i6.R_RL - 1500) * 3.0f +
 	  							(fs_i6.L_RL - 1500) * 5.0f);
 	  
-	  uint16_t target_pwm_m3 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f - 
-	  							(fs_i6.R_UD - 1500) * 5.0f - 
-	  							(fs_i6.R_RL - 1500) * 5.0f -
+	  	uint16_t target_pwm_m3 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f - 
+	  							Pitch_PID_Demo - 
+	  							(fs_i6.R_RL - 1500) * 3.0f -
 	  							(fs_i6.L_RL - 1500) * 5.0f);
 
-	  uint16_t target_pwm_m4 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f + 
-	  							(fs_i6.R_UD - 1500) * 5.0f - 
-	  							(fs_i6.R_RL - 1500) * 5.0f +
+	  	uint16_t target_pwm_m4 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f + 
+	  							Pitch_PID_Demo - 
+	  							(fs_i6.R_RL - 1500) * 3.0f +
 	  							(fs_i6.L_RL - 1500) * 5.0f);
-	  Motor_Update_Values(&motor_speed, target_pwm_m1, target_pwm_m2, target_pwm_m3, target_pwm_m4);
+	  	Motor_Update_Values(&motor_speed, target_pwm_m1, target_pwm_m2, target_pwm_m3, target_pwm_m4);
 	  }
   }
   /* USER CODE END 3 */
@@ -389,7 +406,7 @@ void Buzzer_Success(void)
 			260
 	};
 
-	for(int i = 0; i < 4; i++)
+	for(uint8_t i = 0; i < 4; i++)
 	{
 		TIM3->PSC = psc[i];
 
@@ -447,7 +464,18 @@ void Motor_Safety(MOTOR *mt_ptr){
 		Motor_Min_Throttle(&htim1);
 	  }
 	  //Thoãa hết thì bay
-	  else Motor_Set_Speed(mt_ptr);
+	  else 
+	  {
+	  	//Nếu ga cao cao tí thì nhận điều tốc bằng PWM
+	  	if(fs_i6.L_UD > 1050){
+			Motor_Set_Speed(mt_ptr);
+	  	}
+	  	else{
+			Motor_Min_Throttle(&htim1);
+			pid_inner.error_sum = 0.0f; //Reset khâu I tránh nó cộng dồn lên
+			pid_outer.error_sum = 0.0f; //Reset khâu I tránh nó cộng dồn lên
+		}
+	  }
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
