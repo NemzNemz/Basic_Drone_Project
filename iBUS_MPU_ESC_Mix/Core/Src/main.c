@@ -58,6 +58,8 @@ uint32_t tim1_ch2 = 12500;
 uint32_t tim1_ch3 = 12500;
 uint32_t tim1_ch4 = 12500;
 
+uint8_t n = 0;
+
 float Pitch_PID = 0.0f;
 float Roll_PID = 0.0f;
 //Chỉ để tường minh, ko cần tới nỗi 3 biến
@@ -94,6 +96,9 @@ volatile uint8_t ibus_loss_connect_cnt =0;
 //MPU hàng bãi, áp dụng logic check xem nó có bị lỏ như mất RX ko
 volatile uint8_t mpu_loss_cnt = 0;
 volatile uint8_t mpu_loss_flag = 0;
+//Biến lấy đại 1 trục bất kì của MPU, vì mpu ko thể có data cũ và mới giống nhau
+int16_t old_raw_z = 0;
+int16_t curren_raw_z = 0;
 
 uint8_t failsafe_flag = 0;
 //Mặc định là lock ko cho chạy motor
@@ -198,13 +203,21 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if (mpu_data_ready_flag == 1)
-	  {
-		  mpu_data_ready_flag = 0;
-		  // Gọi hàm toán tử giải mã đại số bitwise bằng cơ chế truyền con trỏ tham chiếu
-		  MPU_RAW_MEASUREMENT(&mpu_mea);
-		  CONVERT_TO_ORIENT(&mpu_mea, &eul_mea);
-	  }
+	if (mpu_data_ready_flag == 1) {
+		mpu_data_ready_flag = 0;
+		// Gọi hàm toán tử giải mã đại số bitwise bằng cơ chế truyền con trỏ tham chiếu
+		MPU_RAW_MEASUREMENT(&mpu_mea);
+		CONVERT_TO_ORIENT(&mpu_mea, &eul_mea);
+		curren_raw_z = (int16_t)((mpu_mea.raw_buffer[4] << 8) | mpu_mea.raw_buffer[5]);
+		//Nếu daata biến thiên thì ok mpu vẫn chạy
+		if(curren_raw_z != old_raw_z){
+			mpu_loss_cnt = 0;
+			mpu_loss_flag = 0;
+		}
+		if(curren_raw_z == old_raw_z) n++;
+		//Data cũ sẽ chạy dưới đây
+		old_raw_z = curren_raw_z;
+	}
 
 	  if(ibus_cplt_flag == 1){
 		  // Reset cờ truyền frame ibus
@@ -526,7 +539,7 @@ void Motor_Safety(MOTOR *mt_ptr){
 	  }
 
 	  //Nếu bất kì điều kiện nào trong đây được kích hoạt thì báo còi + giảm tốc lực
-	  else if(failsafe_flag == 1 || ibus_loss_connect_flag == 1){
+	  else if(failsafe_flag == 1 || ibus_loss_connect_flag == 1 || mpu_loss_flag == 1){
 		Buzzer_On();
 		Motor_Min_Throttle(&htim1);
 	  }
@@ -540,6 +553,8 @@ void Motor_Safety(MOTOR *mt_ptr){
 	  	else{
 			Motor_Min_Throttle(&htim1);
 		}
+	  	//Còi tắt nếu ko có gì xảy ra
+	  	Buzzer_Off();
 	  }
 }
 
@@ -547,10 +562,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	//Boi vi ngat nao cung nhay vao ham nay, nen phai check xem co phai dung TIM khong?
 	if (htim->Instance == htim11.Instance) {
 		ibus_loss_connect_cnt++;
+		mpu_loss_cnt++;
 		if (ibus_loss_connect_cnt >= 250) {
 			//Bật cờ gì đó ở đây
 			ibus_loss_connect_flag = 1;
 			ibus_loss_connect_cnt = 0;
+		}
+		if (mpu_loss_cnt >= 50){
+			//MPU hẻo rồi đó
+			mpu_loss_flag = 1;
+			mpu_loss_cnt = 0;
 		}
 	}
 	//Nếu là ngắt TIM10 cho PID thì đảo chân để test cái, mốt xoá sau
