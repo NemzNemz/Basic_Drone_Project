@@ -14,9 +14,9 @@
  */
 void pid_pitch_roll(uint16_t rc_raw_axis, float gyro_val, float euler_val, PID_t *outer, PID_t *inner){
 	/*
-	  Đây là Outer Loop, tính Kp trước này. 0.1f này nhớ sửa lại theo góc tối đa
+	  Đây là Outer Loop, tính Kp trước này. 0.05f tương đương (giả định) 500 * 0.05 = 25 độ
 	*/
-	float setpoint = (rc_raw_axis - 1500) * 0.1f;
+	float setpoint = (rc_raw_axis - 1500) * 0.05f;
 	float error = setpoint - euler_val;
 	float p_temp = error * outer->KP;
 
@@ -76,8 +76,8 @@ void pid_yaw_rate(uint16_t rc_raw_axis, float gyroz_val, PID_t *yaw_rate){
 	//Tinh Kp
 	//1.0f nhớ sửa lai theo góc tối đa
 	float gyroz_deg = gyroz_val * RAD_TO_DEG;
-	//Tinhs Kp trước này
-	float rate_setpoint = (rc_raw_axis - 1500) * 1.0f;
+	//Tinhs Kp trước này,  0.36f tương đương (giả định) 500 * 0.36 = 180độ/s
+	float rate_setpoint = (rc_raw_axis - 1500) * 0.36f;
 	float rate_error = rate_setpoint - gyroz_deg;
 	float p_temp_rate = rate_error * yaw_rate->KP;
 	
