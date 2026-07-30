@@ -13,6 +13,8 @@
  * - euler_val:   Góc thái độ đã qua lọc từ MPU6050 (euler_pitch cho Pitch, euler_roll cho Roll).
  */
 void pid_pitch_roll(uint16_t rc_raw_axis, float gyro_val, float euler_val, PID_t *outer, PID_t *inner){
+	//Chuẩn hoá đơn vị đầu vào là độ trên s
+	gyro_val = gyro_val * RAD_TO_DEG;
 	/*
 	  Đây là Outer Loop, tính Kp trước này. 0.05f tương đương (giả định) 500 * 0.05 = 25 độ
 	*/
@@ -102,10 +104,11 @@ void pid_yaw_rate(uint16_t rc_raw_axis, float gyroz_val, PID_t *yaw_rate){
 	yaw_rate->PID_OUT = p_temp_rate + i_temp_rate + d_temp_rate;
 }
 
-void pid_yaw_angle(uint16_t rc_raw_axis, float euler_yaw, float gyroz_val, PID_t *yaw_angle){
+void pid_yaw_angle(float target_angle, float euler_yaw, float gyroz_val, PID_t *yaw_angle){
+	float gyroz_deg = gyroz_val * RAD_TO_DEG;
 	//Tinh Kp
 	//1.0f nhớ sửa lai theo góc tối đa
-	float angle_setpoint = (rc_raw_axis - 1500) * 1.0f;
+	float angle_setpoint = target_angle;
 	float angle_error = angle_setpoint - euler_yaw;
 	if(angle_error > 180.0f){
 		angle_error -= 360.0f;
@@ -118,7 +121,7 @@ void pid_yaw_angle(uint16_t rc_raw_axis, float euler_yaw, float gyroz_val, PID_t
 	//BỎ KI do MPU6050 xài cái này còn tệ hơn với trục YAW chế độ góc xoay
 	
 	//Tinh Kd
-	float angle_derivative = gyroz_val;
+	float angle_derivative = gyroz_deg;
 	//Thêm phần lọc nhiẽu IIR vào để hệ KD nó mượt mà hơn
 	yaw_angle->IIR_derivative = yaw_angle->IIR_derivative * 0.5f + angle_derivative * 0.5f;
 	float d_temp_angle = - yaw_angle->IIR_derivative * yaw_angle->KD;
