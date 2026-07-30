@@ -30,6 +30,7 @@
 #include "motor.h"
 #include "battery.h"
 #include "pid.h"
+#include "math.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -58,16 +59,41 @@ uint32_t tim1_ch2 = 12500;
 uint32_t tim1_ch3 = 12500;
 uint32_t tim1_ch4 = 12500;
 
-float Pitch_PID = 0;
-float Roll_PID = 0;
+float Pitch_PID = 0.0f;
+float Roll_PID = 0.0f;
+//Chỉ để tường minh, ko cần tới nỗi 3 biến
+float Yaw_RT_PID = 0.0f;
+float Yaw_ANGLE_PID = 0.0f;
+float Yaw_FINAL_PID = 0.0f;
+//Biến tham chiếu góc mục tiêu 
+float Yaw_HEADING_REF = 0.0f;
+
+/*
+PID_t roll_outer  = {.KP = 2.0f,  .KI = 0.0f,  .KD = 0.0f,   .error_sum = 0, .prev_val = 0, .IIR_derivative = 0};
+PID_t roll_inner  = {.KP = 0.35f, .KI = 0.15f, .KD = 0.005f, .error_sum = 0, .prev_val = 0, .IIR_derivative = 0};
+
+PID_t pitch_outer = {.KP = 2.0f,  .KI = 0.0f,  .KD = 0.0f,   .error_sum = 0, .prev_val = 0, .IIR_derivative = 0};
+PID_t pitch_inner = {.KP = 0.35f, .KI = 0.15f, .KD = 0.005f, .error_sum = 0, .prev_val = 0, .IIR_derivative = 0};
+
+PID_t pid_yaw_rt  = {.KP = 2.5f, .KI = 0.00f, .KD = 0.01f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_yaw_ag  = {.KP = 1.0f, .KI = 0.05f, .KD = 0.001f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+
+*/
 
 //PID kép trục Pitch
-PID_t pid_pitch_outer = {.KP = 15.0f, .KI = 0.00f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
-PID_t pid_pitch_inner = {.KP = 10.5f, .KI = 0.00f, .KD = 0.02f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_pitch_outer = {.KP = 0.0f, .KI = 0.00f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_pitch_inner = {.KP = 0.0f, .KI = 0.00f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
 
 //PID kép trục Roll
-PID_t pid_roll_outer  = {.KP = 15.0f, .KI = 0.00f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
-PID_t pid_roll_inner  = {.KP = 10.5f, .KI = 0.00f, .KD = 0.02, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_roll_outer  = {.KP = 0.0f, .KI = 0.00f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_roll_inner  = {.KP = 0.0f, .KI = 0.00f, .KD = 0.0, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+
+//PID đơn trục Yaw, tốc độ góc
+PID_t pid_yaw_rt  = {.KP = 0.0f, .KI = 0.00f, .KD = 10.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+
+//PID đơn trục Yaw, chỉ góc
+PID_t pid_yaw_ag  = {.KP = 0.0f, .KI = 0.00f, .KD = 10.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+
 
 MPU_MEASUREMENT mpu_mea = {0};
 EULER_MEASUREMENT eul_mea = {0};
@@ -81,6 +107,9 @@ volatile uint8_t ibus_loss_connect_cnt =0;
 //MPU hàng bãi, áp dụng logic check xem nó có bị lỏ như mất RX ko
 volatile uint8_t mpu_loss_cnt = 0;
 volatile uint8_t mpu_loss_flag = 0;
+//Biến lấy đại 1 trục bất kì của MPU, vì mpu ko thể có data cũ và mới giống nhau
+int16_t old_raw_z = 0;
+int16_t curren_raw_z = 0;
 
 uint8_t failsafe_flag = 0;
 //Mặc định là lock ko cho chạy motor
@@ -166,6 +195,7 @@ int main(void)
   //Timer dành cho check connect RX vật lý, chạy ngắt 500Hz
   HAL_TIM_Base_Start_IT(&htim11);
 
+  HAL_Delay(200);
   MPU_INIT(&hi2c1);
   fs_i6ab_init(&huart1);
   Motor_Init(&htim1);
@@ -185,13 +215,20 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if (mpu_data_ready_flag == 1)
-	  {
-		  mpu_data_ready_flag = 0;
-		  // Gọi hàm toán tử giải mã đại số bitwise bằng cơ chế truyền con trỏ tham chiếu
-		  MPU_RAW_MEASUREMENT(&mpu_mea);
-		  CONVERT_TO_ORIENT(&mpu_mea, &eul_mea);
-	  }
+	if (mpu_data_ready_flag == 1) {
+		mpu_data_ready_flag = 0;
+		// Gọi hàm toán tử giải mã đại số bitwise bằng cơ chế truyền con trỏ tham chiếu
+		MPU_RAW_MEASUREMENT(&mpu_mea);
+		CONVERT_TO_ORIENT(&mpu_mea, &eul_mea);
+		curren_raw_z = (int16_t)((mpu_mea.raw_buffer[4] << 8) | mpu_mea.raw_buffer[5]);
+		//Nếu daata biến thiên thì ok mpu vẫn chạy
+		if(curren_raw_z != old_raw_z){
+			mpu_loss_cnt = 0;
+			mpu_loss_flag = 0;
+		}
+		//Data cũ sẽ chạy dưới đây
+		old_raw_z = curren_raw_z;
+	}
 
 	  if(ibus_cplt_flag == 1){
 		  // Reset cờ truyền frame ibus
@@ -220,9 +257,8 @@ int main(void)
 	  if(pid_flag == 1){
 		pid_flag = 0;
 		//PID Kép trục Pitch
-		pid_pitch_roll(motor_lock_flag,
+		pid_pitch_roll(
 					   3000 - fs_i6.R_UD,
-		               fs_i6.L_UD,
 		               mpu_mea.gyro.y,
 		               eul_mea.pitch,
 		               &pid_pitch_outer,
@@ -230,36 +266,62 @@ int main(void)
 		Pitch_PID = pid_pitch_inner.PID_OUT;
 		
 		//PID kép trục Roll
-		pid_pitch_roll(motor_lock_flag,
+		pid_pitch_roll(
 		               fs_i6.R_RL,
-		               fs_i6.L_UD,
-		               mpu_mea.gyro.x,
+		               -mpu_mea.gyro.x,
 		               eul_mea.roll,
 		               &pid_roll_outer,
 		               &pid_roll_inner);
 		Roll_PID = pid_roll_inner.PID_OUT;
 
+		if(fs_i6.L_UD <= 1050 || motor_lock_flag == 1){
+			reset_error(&pid_roll_outer);
+			reset_error(&pid_roll_inner);
+			reset_error(&pid_pitch_outer);
+			reset_error(&pid_pitch_inner);
+			reset_error(&pid_yaw_rt);
+			//reset_error(&pid_roll_outer);
+		}
+		
+		if(fs_i6.L_RL < 1450 ||  fs_i6.L_RL > 1550){	
+			//Tham chiếu để Drone biết nên điều tốc motor xoay ra sao
+			Yaw_HEADING_REF = eul_mea.yaw;
+			//PID đơn trục Yaw theo tốc độ góc
+			pid_yaw_rate(fs_i6.L_RL, mpu_mea.gyro.z, &pid_yaw_rt);
+			Yaw_RT_PID = pid_yaw_rt.PID_OUT;
+			Yaw_FINAL_PID = Yaw_RT_PID;
+		}
+		else {
+			//PID đơn trục Yaw theo góc thái độ
+			pid_yaw_angle(Yaw_HEADING_REF, eul_mea.yaw, mpu_mea.gyro.z, &pid_yaw_ag);
+			Yaw_ANGLE_PID = pid_yaw_ag.PID_OUT;
+			Yaw_FINAL_PID = Yaw_ANGLE_PID;
+		}
+
 		//Chuyển đổi tín hiệu tay cầm thành xung PWM
-		//SAU NÀY GÓC PITCH ROLL GIỚI HẠN +-30 độ, YAW 180 độ /s
-	  	uint16_t target_pwm_m1 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f +
+		uint16_t target_pwm_m1 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f +
 	  							Pitch_PID  +
 								Roll_PID -
-	  							(fs_i6.L_RL - 1500) * 5.0f);
+								Yaw_FINAL_PID);
+	  							//(fs_i6.L_RL - 1500) * 5.0f);
 	  
-	  	uint16_t target_pwm_m2 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f -
+		uint16_t target_pwm_m2 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f -
 	  							Pitch_PID +
 								Roll_PID +
-	  							(fs_i6.L_RL - 1500) * 5.0f);
+								Yaw_FINAL_PID);
+								//(fs_i6.L_RL - 1500) * 5.0f);
 	  
-	  	uint16_t target_pwm_m3 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f -
+		uint16_t target_pwm_m3 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f -
 	  							Pitch_PID -
 								Roll_PID -
-	  							(fs_i6.L_RL - 1500) * 5.0f);
+								Yaw_FINAL_PID);
+								//(fs_i6.L_RL - 1500) * 5.0f);
 
-	  	uint16_t target_pwm_m4 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f +
+		uint16_t target_pwm_m4 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f +
 	  							Pitch_PID -
 								Roll_PID +
-	  							(fs_i6.L_RL - 1500) * 5.0f);
+								Yaw_FINAL_PID);
+								//(fs_i6.L_RL - 1500) * 5.0f);
 	  	Motor_Update_Values(&motor_speed, target_pwm_m1, target_pwm_m2, target_pwm_m3, target_pwm_m4);
 	  }
   }
@@ -457,7 +519,11 @@ void ESC_Calib(){
 void Motor_Safety(MOTOR *mt_ptr){
 	  //Nếu như gạt cần bay và ga thấp nhất thì mới cho bay + gỡ cờ khoá
 	  if(fs_i6.SwA == 2000 && is_iBUS_Throttle_Min() == 1) {
-		motor_lock_flag = 0;
+	  	if(motor_lock_flag == 1){
+			// Chụp lại góc Yaw thực tế lúc drone nằm trên mặt đất
+			Yaw_HEADING_REF = eul_mea.yaw; 
+            motor_lock_flag = 0;
+		}
 		Buzzer_Off();
 	    //Động cơ quay chậm để cho biết sẵn sàng
 		Motor_Min_Throttle(&htim1);
@@ -480,7 +546,7 @@ void Motor_Safety(MOTOR *mt_ptr){
 	  }
 
 	  //Nếu bất kì điều kiện nào trong đây được kích hoạt thì báo còi + giảm tốc lực
-	  else if(failsafe_flag == 1 || ibus_loss_connect_flag == 1){
+	  else if(failsafe_flag == 1 || ibus_loss_connect_flag == 1 || mpu_loss_flag == 1){
 		Buzzer_On();
 		Motor_Min_Throttle(&htim1);
 	  }
@@ -493,12 +559,9 @@ void Motor_Safety(MOTOR *mt_ptr){
 	  	}
 	  	else{
 			Motor_Min_Throttle(&htim1);
-			//Reset khâu I tránh nó cộng dồn lên
-			pid_pitch_inner.error_sum = 0.0f;
-			pid_pitch_outer.error_sum = 0.0f;
-			pid_roll_inner.error_sum = 0.0f;
-			pid_roll_outer.error_sum = 0.0f;
 		}
+	  	//Còi tắt nếu ko có gì xảy ra
+	  	Buzzer_Off();
 	  }
 }
 
@@ -506,10 +569,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	//Boi vi ngat nao cung nhay vao ham nay, nen phai check xem co phai dung TIM khong?
 	if (htim->Instance == htim11.Instance) {
 		ibus_loss_connect_cnt++;
+		mpu_loss_cnt++;
 		if (ibus_loss_connect_cnt >= 250) {
 			//Bật cờ gì đó ở đây
 			ibus_loss_connect_flag = 1;
 			ibus_loss_connect_cnt = 0;
+		}
+		if (mpu_loss_cnt >= 50){
+			//MPU hẻo rồi đó
+			mpu_loss_flag = 1;
+			mpu_loss_cnt = 0;
 		}
 	}
 	//Nếu là ngắt TIM10 cho PID thì đảo chân để test cái, mốt xoá sau

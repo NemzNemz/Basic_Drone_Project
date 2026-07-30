@@ -7,8 +7,10 @@
 #include "main.h"
 #ifndef INC_PID_H_
 #define INC_PID_H_
-
-#define DELTA_T 		0.002f //Tần số 500Hz
+//Doi RAD sang độ
+#define RAD_TO_DEG 		57.295f
+//Tần số 500Hz
+#define DELTA_T 		0.002f
 
 typedef struct{
 	//Các K này là CỐ ĐỊNH
@@ -21,6 +23,11 @@ typedef struct{
 	float IIR_derivative;
 }PID_t;
 
-void pid_pitch_roll(uint8_t mt_flag ,uint16_t rc_raw_pitch, uint16_t rc_raw_throttle, float gyro_x, float euler_pitch, PID_t *outer, PID_t *inner);
+void pid_pitch_roll(uint16_t rc_raw_axis, float gyro_val, float euler_val, PID_t *outer, PID_t *inner);
+void pid_yaw_rate(uint16_t rc_raw_axis, float gyroz_val, PID_t *yaw_rate);
+void pid_yaw_angle(float target_angle, float euler_yaw, float gyroz_val, PID_t *yaw_angle);
+
+void reset_error(PID_t *err);
+
 
 #endif /* INC_PID_H_ */
