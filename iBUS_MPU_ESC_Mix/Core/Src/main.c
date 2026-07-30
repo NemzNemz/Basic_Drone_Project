@@ -30,6 +30,7 @@
 #include "motor.h"
 #include "battery.h"
 #include "pid.h"
+#include "math.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -58,8 +59,6 @@ uint32_t tim1_ch2 = 12500;
 uint32_t tim1_ch3 = 12500;
 uint32_t tim1_ch4 = 12500;
 
-uint8_t n = 0;
-
 float Pitch_PID = 0.0f;
 float Roll_PID = 0.0f;
 //Chỉ để tường minh, ko cần tới nỗi 3 biến
@@ -69,19 +68,31 @@ float Yaw_FINAL_PID = 0.0f;
 //Biến tham chiếu góc mục tiêu 
 float Yaw_HEADING_REF = 0.0f;
 
+/*
+PID_t roll_outer  = {.KP = 2.0f,  .KI = 0.0f,  .KD = 0.0f,   .error_sum = 0, .prev_val = 0, .IIR_derivative = 0};
+PID_t roll_inner  = {.KP = 0.35f, .KI = 0.15f, .KD = 0.005f, .error_sum = 0, .prev_val = 0, .IIR_derivative = 0};
+
+PID_t pitch_outer = {.KP = 2.0f,  .KI = 0.0f,  .KD = 0.0f,   .error_sum = 0, .prev_val = 0, .IIR_derivative = 0};
+PID_t pitch_inner = {.KP = 0.35f, .KI = 0.15f, .KD = 0.005f, .error_sum = 0, .prev_val = 0, .IIR_derivative = 0};
+
+PID_t pid_yaw_rt  = {.KP = 2.5f, .KI = 0.00f, .KD = 0.01f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_yaw_ag  = {.KP = 1.0f, .KI = 0.05f, .KD = 0.001f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+
+*/
+
 //PID kép trục Pitch
-PID_t pid_pitch_outer = {.KP = 15.0f, .KI = 0.00f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
-PID_t pid_pitch_inner = {.KP = 10.5f, .KI = 0.00f, .KD = 0.02f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_pitch_outer = {.KP = 0.0f, .KI = 0.00f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_pitch_inner = {.KP = 0.0f, .KI = 0.00f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
 
 //PID kép trục Roll
-PID_t pid_roll_outer  = {.KP = 15.0f, .KI = 0.00f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
-PID_t pid_roll_inner  = {.KP = 10.5f, .KI = 0.00f, .KD = 0.02, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_roll_outer  = {.KP = 0.0f, .KI = 0.00f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_roll_inner  = {.KP = 0.0f, .KI = 0.00f, .KD = 0.0, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
 
 //PID đơn trục Yaw, tốc độ góc
-PID_t pid_yaw_rt  = {.KP = 15.0f, .KI = 0.00f, .KD = 0.02f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_yaw_rt  = {.KP = 0.0f, .KI = 0.00f, .KD = 10.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
 
 //PID đơn trục Yaw, chỉ góc
-PID_t pid_yaw_ag  = {.KP = 35.0f, .KI = 0.00f, .KD = 0.02f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_yaw_ag  = {.KP = 0.0f, .KI = 0.00f, .KD = 10.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
 
 
 MPU_MEASUREMENT mpu_mea = {0};
@@ -184,6 +195,7 @@ int main(void)
   //Timer dành cho check connect RX vật lý, chạy ngắt 500Hz
   HAL_TIM_Base_Start_IT(&htim11);
 
+  HAL_Delay(200);
   MPU_INIT(&hi2c1);
   fs_i6ab_init(&huart1);
   Motor_Init(&htim1);
@@ -214,7 +226,6 @@ int main(void)
 			mpu_loss_cnt = 0;
 			mpu_loss_flag = 0;
 		}
-		if(curren_raw_z == old_raw_z) n++;
 		//Data cũ sẽ chạy dưới đây
 		old_raw_z = curren_raw_z;
 	}
@@ -257,15 +268,11 @@ int main(void)
 		//PID kép trục Roll
 		pid_pitch_roll(
 		               fs_i6.R_RL,
-		               mpu_mea.gyro.x,
+		               -mpu_mea.gyro.x,
 		               eul_mea.roll,
 		               &pid_roll_outer,
 		               &pid_roll_inner);
 		Roll_PID = pid_roll_inner.PID_OUT;
-
-		//PID đơn trục Yaw theo tốc độ góc
-		//pid_yaw_rate(fs_i6.L_RL, mpu_mea.gyro.z, &pid_yaw_rt);
-		//Yaw_RT_PID = pid_yaw_rt.PID_OUT;
 
 		if(fs_i6.L_UD <= 1050 || motor_lock_flag == 1){
 			reset_error(&pid_roll_outer);
@@ -286,31 +293,31 @@ int main(void)
 		}
 		else {
 			//PID đơn trục Yaw theo góc thái độ
-			pid_yaw_angle(fs_i6.L_RL, eul_mea.yaw, mpu_mea.gyro.z, &pid_yaw_ag);
+			pid_yaw_angle(Yaw_HEADING_REF, eul_mea.yaw, mpu_mea.gyro.z, &pid_yaw_ag);
 			Yaw_ANGLE_PID = pid_yaw_ag.PID_OUT;
 			Yaw_FINAL_PID = Yaw_ANGLE_PID;
 		}
+
 		//Chuyển đổi tín hiệu tay cầm thành xung PWM
-		//SAU NÀY GÓC PITCH ROLL GIỚI HẠN +-30 độ, YAW 180 độ /s
-	  	uint16_t target_pwm_m1 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f +
+		uint16_t target_pwm_m1 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f +
 	  							Pitch_PID  +
 								Roll_PID -
 								Yaw_FINAL_PID);
 	  							//(fs_i6.L_RL - 1500) * 5.0f);
 	  
-	  	uint16_t target_pwm_m2 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f -
+		uint16_t target_pwm_m2 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f -
 	  							Pitch_PID +
 								Roll_PID +
 								Yaw_FINAL_PID);
 								//(fs_i6.L_RL - 1500) * 5.0f);
 	  
-	  	uint16_t target_pwm_m3 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f -
+		uint16_t target_pwm_m3 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f -
 	  							Pitch_PID -
 								Roll_PID -
 								Yaw_FINAL_PID);
 								//(fs_i6.L_RL - 1500) * 5.0f);
 
-	  	uint16_t target_pwm_m4 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f +
+		uint16_t target_pwm_m4 = (uint16_t)(12500 + (fs_i6.L_UD - 1000) * 12.5f +
 	  							Pitch_PID -
 								Roll_PID +
 								Yaw_FINAL_PID);
