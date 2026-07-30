@@ -25,7 +25,7 @@ typedef struct{
 
 void pid_pitch_roll(uint16_t rc_raw_axis, float gyro_val, float euler_val, PID_t *outer, PID_t *inner);
 void pid_yaw_rate(uint16_t rc_raw_axis, float gyroz_val, PID_t *yaw_rate);
-void pid_yaw_angle(uint16_t rc_raw_axis, float euler_yaw, float gyroz_val, PID_t *yaw_angle);
+void pid_yaw_angle(float target_angle, float euler_yaw, float gyroz_val, PID_t *yaw_angle);
 
 void reset_error(PID_t *err);
 
