@@ -30,6 +30,7 @@
 #include "motor.h"
 #include "battery.h"
 #include "pid.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -53,6 +54,16 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+//DEBUG DWT
+volatile uint32_t dwt_last_tim10_tick = 0;
+volatile uint32_t dwt_tim10_period_ticks = 0; // Chu kỳ giữa 2 lần vào ngắt TIM10
+volatile float tim10_period_us = 0.0f;        // Chu kỳ TIM10 tính bằng micro-giây
+
+volatile uint32_t dwt_loop_exec_ticks = 0;    // Thời gian CPU xử lý 1 vòng lặp PID
+volatile float loop_exec_us = 0.0f;           // Thời gian thực thi PID (us)
+
+
 uint32_t tim1_ch1 = 12500;
 uint32_t tim1_ch2 = 12500;
 uint32_t tim1_ch3 = 12500;
@@ -68,18 +79,18 @@ float Yaw_FINAL_PID = 0.0f;
 float Yaw_HEADING_REF = 0.0f;
 
 //PID kép trục Pitch
-PID_t pid_pitch_outer = {.KP = 7.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
-PID_t pid_pitch_inner = {.KP = 1.3f, .KI = 0.0f, .KD = 0.03f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_pitch_outer = {.KP = 2.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_pitch_inner = {.KP = 1.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
 
 //PID kép trục Roll
-PID_t pid_roll_outer  = {.KP = 7.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
-PID_t pid_roll_inner  = {.KP = 2.0f, .KI = 0.0f, .KD = 0.05f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_roll_outer  = {.KP = 2.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_roll_inner  = {.KP = 1.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
 
 //PID đơn trục Yaw, tốc độ góc
-PID_t pid_yaw_rt  = {.KP = 3.0f, .KI = 0.0f, .KD = 0.01f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_yaw_rt  = {.KP = 1.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
 
 //PID đơn trục Yaw, chỉ góc
-PID_t pid_yaw_ag  = {.KP = 20.0f, .KI = 0.0f, .KD = 0.2f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_yaw_ag  = {.KP = 2.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
 
 
 MPU_MEASUREMENT mpu_mea = {0};
@@ -168,6 +179,11 @@ int main(void)
   MX_TIM10_Init();
   MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
+
+  // Kích hoạt khối TRACE và bộ đếm CYCCNT của nhân ARM Cortex-M4
+  //CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  //DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
   //Timer cho ESC
   HAL_TIM_Base_Start(&htim1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
@@ -187,7 +203,7 @@ int main(void)
   fs_i6ab_init(&huart1);
   Motor_Init(&htim1);
   BAT_INIT(&hadc1, &raw_adc_val);
-  MPU_CALIB_GYRO(200, &mpu_mea);
+  MPU_CALIB_GYRO(500, &mpu_mea);
 
   //Hàm tổng hợp các bước check an toàn bay
   Pre_Flight_Check();
@@ -242,6 +258,7 @@ int main(void)
 	  }
 
 	  if(pid_flag == 1){
+		//uint32_t start_exec = DWT->CYCCNT;
 		pid_flag = 0;
 		if(fs_i6.L_UD <= 1015 || motor_lock_flag == 1){
 			reset_error(&pid_roll_outer);
@@ -312,7 +329,10 @@ int main(void)
 								Roll_PID +
 								Yaw_FINAL_PID);
 								//(fs_i6.L_RL - 1500) * 5.0f);
-	  	Motor_Update_Values(&motor_speed, target_pwm_m1, target_pwm_m2, target_pwm_m3, target_pwm_m4);
+	  	Motor_Update_Values(&motor_speed, target_pwm_m4, target_pwm_m2, target_pwm_m3, target_pwm_m1);
+	  	// Tính thời gian CPU chạy hết khối lệnh trên:
+	  	//dwt_loop_exec_ticks = DWT->CYCCNT - start_exec;
+	  	//loop_exec_us = (float)dwt_loop_exec_ticks / 100.0f;
 	  }
   }
   /* USER CODE END 3 */
@@ -578,6 +598,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	}
 	//Nếu là ngắt TIM10 cho PID thì đảo chân để test cái, mốt xoá sau
 	if (htim->Instance == htim10.Instance){
+		//Debug lần đầi với DWT
+		//uint32_t current_tick = DWT->CYCCNT;
+		//dwt_tim10_period_ticks = current_tick - dwt_last_tim10_tick;
+		//dwt_last_tim10_tick = current_tick;
+
+		// Ở xung nhịp 100 MHz: 100 ticks = 1 us
+		//tim10_period_us = (float)dwt_tim10_period_ticks / 100.0f;
+
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 		pid_flag = 1;
 	}
