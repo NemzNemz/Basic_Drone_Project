@@ -8,8 +8,8 @@
 #include "assert.h"
 
 static UART_HandleTypeDef *ibus_huart;
-uint8_t usart1_rx_data;
-uint8_t usart1_rx_flag;
+uint8_t usart2_rx_data;
+uint8_t usart2_rx_flag;
 uint8_t ibus_rx_buf[32];
 uint8_t ibus_cplt_flag = 0;
 FS_I6AB_VAR fs_i6;
@@ -82,9 +82,9 @@ void fs_i6ab_init(UART_HandleTypeDef *huart_hw){
 	assert(ibus_huart != NULL);
 	// Cho mấy cái cờ về 0 hết đã
     ibus_cplt_flag = 0;
-    usart1_rx_flag = 0;
+    usart2_rx_flag = 0;
     //Bật ngắt lên
-    HAL_UART_Receive_IT(ibus_huart, &usart1_rx_data, 1);
+    HAL_UART_Receive_IT(ibus_huart, &usart2_rx_data, 1);
 }
 
 uint8_t is_iBUS_Throttle_Min(){
