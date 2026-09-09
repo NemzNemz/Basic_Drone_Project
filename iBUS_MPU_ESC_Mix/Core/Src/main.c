@@ -172,12 +172,12 @@ int main(void)
   MX_DMA_Init();
   MX_I2C1_Init();
   MX_TIM1_Init();
-  MX_USART1_UART_Init();
   MX_ADC1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM10_Init();
   MX_TIM11_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
   // Kích hoạt khối TRACE và bộ đếm CYCCNT của nhân ARM Cortex-M4
@@ -200,7 +200,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim11);
 
   MPU_INIT(&hi2c1);
-  fs_i6ab_init(&huart1);
+  fs_i6ab_init(&huart2);
   Motor_Init(&htim1);
   BAT_INIT(&hadc1, &raw_adc_val);
   MPU_CALIB_GYRO(500, &mpu_mea);
@@ -410,8 +410,8 @@ void Pre_Flight_Check(void){
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  // Kiểm tra chân phát động ngắt có phải là PA2
-  if (GPIO_Pin == GPIO_PIN_2)
+  // Kiểm tra chân phát động ngắt có phải là PB1
+  if (GPIO_Pin == GPIO_PIN_1)
   {
     // Phát động lệnh đọc chuỗi 14 bytes không chặn qua ngắt I2C1
     HAL_StatusTypeDef status = MPU_TRIGGER_READ_IT(&hi2c1, &mpu_mea);
@@ -437,11 +437,11 @@ void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 
 
-	if(huart->Instance == USART1){
-		usart1_rx_flag = 1;
+	if(huart->Instance == USART2){
+		usart2_rx_flag = 1;
 		//Chạy hàm đọc 32byte iBUS
-		iBUS_Parse_Byte(&usart1_rx_data);
-		HAL_UART_Receive_IT(&huart1, &usart1_rx_data, 1);
+		iBUS_Parse_Byte(&usart2_rx_data);
+		HAL_UART_Receive_IT(&huart2, &usart2_rx_data, 1);
 	}
 }
 
@@ -606,7 +606,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		// Ở xung nhịp 100 MHz: 100 ticks = 1 us
 		//tim10_period_us = (float)dwt_tim10_period_ticks / 100.0f;
 
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+		//Chân này ko còn chức năng debug nữa, chuyển dịch sang INT của MPU
+		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 		pid_flag = 1;
 	}
 }
