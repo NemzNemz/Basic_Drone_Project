@@ -26,8 +26,8 @@ typedef struct{
 }FS_I6AB_VAR;
 //Định danh struct là fs_i6
 extern FS_I6AB_VAR fs_i6;
-extern uint8_t usart1_rx_flag;
-extern uint8_t usart1_rx_data;
+extern uint8_t usart2_rx_flag;
+extern uint8_t usart2_rx_data;
 extern uint8_t ibus_cplt_flag;
 extern uint8_t ibus_rx_buf[32];
 

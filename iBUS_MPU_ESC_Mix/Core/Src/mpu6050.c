@@ -63,9 +63,10 @@ void CONVERT_TO_ORIENT(MPU_MEASUREMENT* mpu_mea_ptr, EULER_MEASUREMENT* eul_mea_
     float roll_prev  = eul_mea_ptr->roll  * DEG_TO_RAD;
     float pitch_prev = eul_mea_ptr->pitch * DEG_TO_RAD;
 
-    //Goc Pitch va Roll lay tu Gyro
+    // Theo huong lap MPU: +gyro.x tuong ung voi chieu giam (-) cua Roll
     float roll_gyro  = roll_prev  - mpu_mea_ptr->gyro.x * MPU_DT;
-    float pitch_gyro = pitch_prev - mpu_mea_ptr->gyro.y * MPU_DT;
+    // Theo huong lap MPU: +gyro.y tuong ung voi chieu tang (+) cua Pitch
+    float pitch_gyro = pitch_prev + mpu_mea_ptr->gyro.y * MPU_DT;
 
     // Dung hợp, by MarkSherstan/CompFilter/Fusion
     float roll_fused  = ALPHA * roll_gyro  + (1.0f - ALPHA) * roll_accel;
