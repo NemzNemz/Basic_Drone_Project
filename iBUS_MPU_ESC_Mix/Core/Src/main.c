@@ -252,7 +252,7 @@ int main(void)
 	  //Lấy giá trị điện áp cục pin
 	  BAT_GET_VOL(raw_adc_val, &BAT_vol);
 
-	  //Nếu pin yếu thì còi cho biết còn bay về
+	  //Nếu pin yếu thì còi cho    biết còn bay về
 	  if(is_bat_low(BAT_vol) == 1 && motor_lock_flag == 0){
 		Buzzer_On();
 	  }
@@ -411,9 +411,11 @@ void Pre_Flight_Check(void){
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   // Kiểm tra chân phát động ngắt có phải là PB1
+  // MPU6050 Data Ready: sample mới đã sẵn sàng trong register của MPU
   if (GPIO_Pin == GPIO_PIN_1)
   {
-    // Phát động lệnh đọc chuỗi 14 bytes không chặn qua ngắt I2C1
+    // Chỉ khởi động I2C non-blocking để nhận 14 bytes vào raw_buffer
+    // Việc truyền dữ liệu tiếp tục qua I2C interrupt, EXTI không chờ hoàn thành
     HAL_StatusTypeDef status = MPU_TRIGGER_READ_IT(&hi2c1, &mpu_mea);
 
     // Bẫy lỗi treo bus nếu xuất hiện bằng cách giải vây
@@ -426,21 +428,21 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-  // Kiểm tra thực thể bus vừa hoàn thành ngắt có phải là I2C1 hay không
+  // Callback chỉ được gọi sau khi I2C đã nhận hoàn tất toàn bộ 14 bytes
   if (hi2c->Instance == I2C1)
   {
+	// Báo cho main: raw_buffer đã có một sample hoàn chỉnh để xử lý
     mpu_data_ready_flag = 1;
   }
 }
 
 //Callback cho nhận data iBUS
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-
-
 	if(huart->Instance == USART2){
 		usart2_rx_flag = 1;
 		//Chạy hàm đọc 32byte iBUS
 		iBUS_Parse_Byte(&usart2_rx_data);
+		//Ngắt từng byte một
 		HAL_UART_Receive_IT(&huart2, &usart2_rx_data, 1);
 	}
 }
