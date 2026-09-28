@@ -190,10 +190,6 @@ void MPU_INIT(I2C_HandleTypeDef *hi2c_hw){
 	mpu6050_set_fsr_gyro();
 	//Set tầm đo accel
 	mpu6050_set_fsr_accel();
-	//Bật ngắt khi data sẵn sàng
-	mpu6050_data_ready_interrupt_enable();
-	//Tự động xoá cờ ngắt dưới nền bus I2C
-	mpu6050_enable_latch_int_rd_clear();
 }
 
 HAL_StatusTypeDef MPU_TRIGGER_READ_IT
@@ -392,4 +388,13 @@ static void mpu6050_enable_latch_int_rd_clear(void){
 	//Ghi nó vào thanh ghi INT_PIN_CFG
 	mpu6050_write_reg(MPU6050_INT_PIN_CFG, reg_val);
 }
+
+void MPU_DATA_READY_START(void){
+	  // Bat DATA_RDY cuoi cung de bat dau nói chuyện bang interrupt
+	mpu6050_enable_latch_int_rd_clear();
+	// Cau hinh cach chan INT hoat dong truoc khi bat nguon ngat
+	mpu6050_data_ready_interrupt_enable();
+}
  //YUP
+
+

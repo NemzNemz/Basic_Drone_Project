@@ -74,4 +74,7 @@ Kiểu HAL_StatusTypeDef này tương tự enum, chỉ trả về 4 trạng thá
 HAL_StatusTypeDef MPU_TRIGGER_READ_IT
 (I2C_HandleTypeDef *hi2c_hw, MPU_MEASUREMENT*);
 
+//Bat dau che do doc MPU bang Data Ready interrupt
+void MPU_DATA_READY_START(void);
+
 #endif /* MPU6050_H */

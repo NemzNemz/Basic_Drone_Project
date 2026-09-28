@@ -63,7 +63,6 @@ volatile float tim10_period_us = 0.0f;        // Chu kỳ TIM10 tính bằng mic
 volatile uint32_t dwt_loop_exec_ticks = 0;    // Thời gian CPU xử lý 1 vòng lặp PID
 volatile float loop_exec_us = 0.0f;           // Thời gian thực thi PID (us)
 
-
 uint32_t tim1_ch1 = 12500;
 uint32_t tim1_ch2 = 12500;
 uint32_t tim1_ch3 = 12500;
@@ -199,6 +198,7 @@ int main(void)
   //Timer dành cho check connect RX vật lý, chạy ngắt 500Hz
   HAL_TIM_Base_Start_IT(&htim11);
 
+  //Bắt đầu khởi tạo 1 đống cấu kiện
   MPU_INIT(&hi2c1);
   fs_i6ab_init(&huart2);
   Motor_Init(&htim1);
@@ -207,8 +207,12 @@ int main(void)
 
   //Hàm tổng hợp các bước check an toàn bay
   Pre_Flight_Check();
+
   //Timer cho cái còi lởm
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+
+  //Giờ mới cho các cấu hình MPU ngắt chạy này, để tránh bị giành đường I2C1
+  MPU_DATA_READY_START();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -417,11 +421,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     // Chỉ khởi động I2C non-blocking để nhận 14 bytes vào raw_buffer
     // Việc truyền dữ liệu tiếp tục qua I2C interrupt, EXTI không chờ hoàn thành
     HAL_StatusTypeDef status = MPU_TRIGGER_READ_IT(&hi2c1, &mpu_mea);
-
-    // Bẫy lỗi treo bus nếu xuất hiện bằng cách giải vây
     if (status == HAL_BUSY)
     {
-      unstuck_i2c1();
+    // I2C dang ban khong dong nghia bus bi treo.
+    // Bo request nay va cho MPU Data Ready tiep theo.
+    // Khong reset I2C khi transaction truoc co the van dang hoat dong.
+    // Tạm ko chứng minh được tính hiệu quả của hàm này, nên trong Firmware, hàm unstuck sẽ bị loại bỏ
+      //unstuck_i2c1();
     }
   }
 }
