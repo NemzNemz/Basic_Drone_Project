@@ -58,6 +58,11 @@
 //DEBUG DWT
 volatile uint32_t dwt_last_tim10_tick = 0;
 volatile uint32_t dwt_tim10_period_ticks = 0; // Chu kỳ giữa 2 lần vào ngắt TIM10
+// B3 tam thoi: Thong ke khoang cach giua cac callback TIM10
+volatile uint32_t tim10_period_min_ticks = 0U;
+volatile uint32_t tim10_period_max_ticks = 0U;
+volatile uint32_t tim10_period_sample_count = 0U;
+volatile uint8_t tim10_timestamp_valid = 0U;
 volatile float tim10_period_us = 0.0f;        // Chu kỳ TIM10 tính bằng micro-giây
 
 volatile uint32_t dwt_loop_exec_ticks = 0;    // Thời gian CPU xử lý 1 vòng lặp PID
@@ -101,6 +106,12 @@ volatile uint8_t mpu_data_ready_flag = 0;
 volatile uint8_t ibus_loss_connect_flag = 0;
 volatile uint8_t ibus_loss_connect_cnt =0;
 
+// Xem data này có "mới nhất" hay ko
+uint8_t ibus_fresh_data =0;
+// Snapshot frame iBUS thuộc riêng main, dùng để checksum và decode
+uint8_t ibus_snapshot[32];
+
+
 //MPU hàng bãi, áp dụng logic check xem nó có bị lỏ như mất RX ko
 volatile uint8_t mpu_loss_cnt = 0;
 volatile uint8_t mpu_loss_flag = 0;
@@ -113,10 +124,20 @@ uint8_t failsafe_flag = 0;
 uint8_t motor_lock_flag = 1;
 uint16_t ibus_prev_val =0;
 
-//Cờ cho ngắt PID
-uint8_t pid_flag = 0;
-uint32_t raw_adc_val;
-//Bien đọc điện áp của cục pin
+//Cờ cho ngắt PID, update bổ sung volatile (ko hiểu tại sao ban đầu ko bỏ volatile)
+volatile uint8_t pid_flag = 0;
+
+
+// B4.3A tam thoi: Dem event TIM10 va luot bat dau control
+volatile uint32_t tim10_event_count = 0U;
+volatile uint32_t control_run_count = 0U;
+// B4.3A tam thoi: Dem witness read-clear va phep doc khong on dinh
+volatile uint32_t race_count = 0U;
+volatile uint32_t probe_unstable_count = 0U;
+
+
+//Bien đọc điện áp của cục pin, update bổ sung volatile (ko hiểu tại sao ban đầu ko bỏ volatile)
+volatile uint32_t raw_adc_val;
 float BAT_vol;
 /* USER CODE END PV */
 
@@ -180,8 +201,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   // Kích hoạt khối TRACE và bộ đếm CYCCNT của nhân ARM Cortex-M4
-  //CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-  //DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CYCCNT = 0U;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 
   //Timer cho ESC
   HAL_TIM_Base_Start(&htim1);
@@ -244,7 +266,9 @@ int main(void)
 			  ia6b_decode_data(&ibus_rx_buf[0], &fs_i6);
 			  ibus_loss_connect_cnt = 0;
 			  ibus_loss_connect_flag = 0;
-			  //Nếu
+			  //Data này là mới nhé cu
+			  ibus_fresh_data = 1;
+			  //Nếu mà check ra failsafe thì dựng cờ lên
 			  if(is_failsafe(&fs_i6)!= 0){
 				  failsafe_flag = 1;
 			  }
@@ -263,7 +287,27 @@ int main(void)
 
 	  if(pid_flag == 1){
 		//uint32_t start_exec = DWT->CYCCNT;
+
+
+		// B4.3A tam thoi: Lay sequence sau khi scheduler chap nhan, truoc clear
+		uint32_t seq_before = tim10_event_count;
+
+
 		pid_flag = 0;
+
+
+		// B4.3A tam thoi: Tim witness event bi clear, khong doi scheduler
+		uint32_t seq_after = tim10_event_count;
+		uint8_t flag_after = pid_flag;
+		uint32_t seq_confirm = tim10_event_count;
+		if (seq_after != seq_confirm) {
+			probe_unstable_count++;
+		} else if ((seq_after != seq_before) && (flag_after == 0U)) {
+			race_count++;
+		}
+		control_run_count++;
+
+
 		if(fs_i6.L_UD <= 1015 || motor_lock_flag == 1){
 			reset_error(&pid_roll_outer);
 			reset_error(&pid_roll_inner);
@@ -536,7 +580,10 @@ void ESC_Calib(){
 
 void Motor_Safety(MOTOR *mt_ptr){
 	  //Nếu như gạt cần bay và ga thấp nhất thì mới cho bay + gỡ cờ khoá
-	  if(fs_i6.SwA == 2000 && is_iBUS_Throttle_Min() == 1) {
+	  if(fs_i6.SwA == 2000
+		&& fs_i6.L_UD <= 1010
+		&& ibus_fresh_data == 1){
+
 	  	if(motor_lock_flag == 1){
 			// Chụp lại góc Yaw thực tế lúc drone nằm trên mặt đất
 			Yaw_HEADING_REF = eul_mea.yaw; 
@@ -549,7 +596,8 @@ void Motor_Safety(MOTOR *mt_ptr){
 	    //Động cơ quay chậm để cho biết sẵn sàng
 		Motor_Min_Throttle(&htim1);
 	  }
-
+	  //Xoá luôn cờ	data mới
+	  ibus_fresh_data = 0;
 	  //Nếu như gạt cần bay XUỐNG (SwA = 2000) nhưng ga VẪN CAO
 	  if(fs_i6.SwA == 2000 && motor_lock_flag == 1) {
 		Buzzer_On();
@@ -565,9 +613,13 @@ void Motor_Safety(MOTOR *mt_ptr){
 	  if(motor_lock_flag == 1){
 	  	 Motor_Lock(&htim1);
 	  }
-
+	  //Mất mpu thì phắn
+	  else if(mpu_loss_flag == 1){
+		  motor_lock_flag = 1;
+		  Motor_Lock(&htim1);
+	  }
 	  //Nếu bất kì điều kiện nào trong đây được kích hoạt thì báo còi + giảm tốc lực
-	  else if(failsafe_flag == 1 || ibus_loss_connect_flag == 1 || mpu_loss_flag == 1){
+	  else if(failsafe_flag == 1 || ibus_loss_connect_flag == 1){
 		Buzzer_On();
 		Motor_Min_Throttle(&htim1);
 	  }
@@ -607,15 +659,33 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	//Nếu là ngắt TIM10 cho PID thì đảo chân để test cái, mốt xoá sau
 	if (htim->Instance == htim10.Instance){
 		//Debug lần đầi với DWT
-		//uint32_t current_tick = DWT->CYCCNT;
-		//dwt_tim10_period_ticks = current_tick - dwt_last_tim10_tick;
-		//dwt_last_tim10_tick = current_tick;
+		// B3 tam thoi: Bo timestamp dau, thong ke cac khoang do hop le
+		uint32_t current_tick = DWT->CYCCNT;
+		if (tim10_timestamp_valid != 0U) {
+			uint32_t delta = current_tick - dwt_last_tim10_tick;
+			dwt_tim10_period_ticks = delta;
+			if (tim10_period_sample_count == 0U) {
+				tim10_period_min_ticks = delta;
+				tim10_period_max_ticks = delta;
+			} else {
+				if (delta < tim10_period_min_ticks) tim10_period_min_ticks = delta;
+				if (delta > tim10_period_max_ticks) tim10_period_max_ticks = delta;
+			}
+			tim10_period_sample_count++;
+		} else {
+			tim10_timestamp_valid = 1U;
+		}
+		dwt_last_tim10_tick = current_tick;
 
 		// Ở xung nhịp 100 MHz: 100 ticks = 1 us
 		//tim10_period_us = (float)dwt_tim10_period_ticks / 100.0f;
 
 		//Chân này ko còn chức năng debug nữa, chuyển dịch sang INT của MPU
 		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+
+
+		// B4.3A tam thoi: Dem event ngay truoc writer pid_flag
+		tim10_event_count++;
 		pid_flag = 1;
 	}
 }
