@@ -59,7 +59,7 @@ void CONVERT_TO_ORIENT(MPU_MEASUREMENT* mpu_mea_ptr, EULER_MEASUREMENT* eul_mea_
                                sqrtf(mpu_mea_ptr->accel.y*mpu_mea_ptr->accel.y +
                                      mpu_mea_ptr->accel.z*mpu_mea_ptr->accel.z));
 
-    // Chuuyển sang rad/s cho giống bên MPU_RAW_MEA
+    // Chuyển góc Roll/Pitch từ degree sang radian
     float roll_prev  = eul_mea_ptr->roll  * DEG_TO_RAD;
     float pitch_prev = eul_mea_ptr->pitch * DEG_TO_RAD;
 
@@ -350,7 +350,7 @@ static void mpu6050_set_fsr_accel(void){
      - bit 4 - 3 AFS_SEL = 0x11 do chọn tầm đo +-16g/s
 	 */
 	reg_val &= ~(0x03 << 3); // Xoá AFS_SEL
-	reg_val |= ((0x03 & 0x03)<< 3); // AFS_SEL = 0x11
+	reg_val |= ((0x03 & 0x03)<< 3); // AFS_SEL = 3 -> ±16g
 	mpu6050_accel_lsbs = 2048.0f;
 	//Ghi nó vào thanh ghi GYRO_CONFIG
 	mpu6050_write_reg(MPU6050_ACCEL_CONFIG, reg_val);

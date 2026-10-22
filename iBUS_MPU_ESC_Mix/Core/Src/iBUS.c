@@ -6,12 +6,18 @@
  */
 #include "iBUS.h"
 #include "assert.h"
+#include "string.h"
 
 static UART_HandleTypeDef *ibus_huart;
 uint8_t usart2_rx_data;
 uint8_t usart2_rx_flag;
+
+// Buffer ghép frame iBUS đang nhận, thuộc quyền sở hữu của UART ISR
 uint8_t ibus_rx_buf[32];
-uint8_t ibus_cplt_flag = 0;
+
+// Mailbox công bố frame iBUS hoàn chỉnh từ UART ISR sang main
+uint8_t ibus_mailbox[32];
+volatile uint8_t ibus_cplt_flag = 0;
 FS_I6AB_VAR fs_i6;
 
 uint8_t ibus_check_sum(uint8_t* data, uint8_t len){
@@ -54,6 +60,7 @@ void iBUS_Parse_Byte(uint8_t* data){
 			index++;
 		}
 		break;
+
 		//Byte 1 phải bằng 0x40, không thì bắt đầu lại
 	case 1:
 		if(*data == 0x40){
@@ -62,13 +69,17 @@ void iBUS_Parse_Byte(uint8_t* data){
 		}
 		else index = 0;
 		break;
-		//Byte kết thúc frame thì reset index
+
+		// Byte cuối hoàn tất frame
 	case 31:
 		ibus_rx_buf[index] = *data;
 		index = 0;
-		//Xong 1 frame thì bật biến cờ lên
+		// Công bố frame hoàn chỉnh sang mailbox cho foreground xử lý
+		memcpy(ibus_mailbox, ibus_rx_buf, sizeof(ibus_rx_buf));
+		// Báo mailbox đã có frame mới sẵn sàng
 		ibus_cplt_flag = 1;
 		break;
+
 		//Từ byte 2-30 thì cứ tăng dần biến đếm
 	default:
 		ibus_rx_buf[index] = *data;
@@ -112,3 +123,24 @@ uint8_t is_iBUS_Received(){
 	}
 	return 0;
 }
+
+/*uint8_t iBUS_Take_Frame(uint8_t *snapshot){
+	//Biến check xem Main vừa sao chép được frame vào snapshot hay chưa
+	uint8_t have_frame = 0;
+	//Bắt giá trị PRIMASK cũ là gì
+	uint32_t old_primask = __get_PRIMASK();
+	// Tạm chặn các ngắt có mức ưu tiên cấu hình được, trường hợp này là USART
+	__disable_irq();
+
+	if(ibus_cplt_flag == 1){
+	  //Có frame thì bắt đầu memcpy vào ibus_snapshot
+	  memcpy(ibus_snapshot, ibus_mailbox, 32);
+	  // Reset cờ truyền frame ibus
+	  ibus_cplt_flag = 0;
+	  //Main vừa sao chép được frame vào snapshot
+	  have_frame = 1;
+	}
+	//Trả ngắt USART lai thông qua cơ chế trả trạng thái trước khi Exception Entry
+	__set_PRIMASK(old_primask);
+	return have_frame;
+}*/

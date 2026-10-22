@@ -28,8 +28,11 @@ typedef struct{
 extern FS_I6AB_VAR fs_i6;
 extern uint8_t usart2_rx_flag;
 extern uint8_t usart2_rx_data;
-extern uint8_t ibus_cplt_flag;
+extern volatile uint8_t ibus_cplt_flag;
 extern uint8_t ibus_rx_buf[32];
+
+//2 Biến này là dành cho mailbox
+extern uint8_t ibus_mailbox[32];
 
 uint8_t ibus_check_sum(uint8_t* data, uint8_t len);
 void ia6b_decode_data(uint8_t* data, FS_I6AB_VAR*fs_i6);
