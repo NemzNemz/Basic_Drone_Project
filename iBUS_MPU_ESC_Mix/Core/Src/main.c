@@ -56,16 +56,6 @@
 
 /* USER CODE BEGIN PV */
 
-//DEBUG DWT
-volatile uint32_t dwt_last_tim10_tick = 0;
-volatile uint32_t dwt_tim10_period_ticks = 0; // Chu kỳ giữa 2 lần vào ngắt TIM10
-// B3 tam thoi: Thong ke khoang cach giua cac callback TIM10
-volatile uint32_t tim10_period_min_ticks = 0U;
-volatile uint32_t tim10_period_max_ticks = 0U;
-volatile uint32_t tim10_period_sample_count = 0U;
-volatile uint8_t tim10_timestamp_valid = 0U;
-volatile float tim10_period_us = 0.0f;        // Chu kỳ TIM10 tính bằng micro-giây
-
 volatile uint32_t dwt_loop_exec_ticks = 0;    // Thời gian CPU xử lý 1 vòng lặp PID
 volatile float loop_exec_us = 0.0f;           // Thời gian thực thi PID (us)
 
@@ -126,14 +116,6 @@ uint16_t ibus_prev_val =0;
 
 //Cờ cho ngắt PID, update bổ sung volatile (ko hiểu tại sao ban đầu ko bỏ volatile)
 volatile uint8_t pid_flag = 0;
-
-
-// B4.3A tam thoi: Dem event TIM10 va luot bat dau control
-volatile uint32_t tim10_event_count = 0U;
-volatile uint32_t control_run_count = 0U;
-// B4.3A tam thoi: Dem witness read-clear va phep doc khong on dinh
-volatile uint32_t race_count = 0U;
-volatile uint32_t probe_unstable_count = 0U;
 
 
 //Bien đọc điện áp của cục pin, update bổ sung volatile (ko hiểu tại sao ban đầu ko bỏ volatile)
@@ -199,11 +181,6 @@ int main(void)
   MX_TIM11_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
-  // Kích hoạt khối TRACE và bộ đếm CYCCNT của nhân ARM Cortex-M4
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-  DWT->CYCCNT = 0U;
-  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 
   //Timer cho ESC
   HAL_TIM_Base_Start(&htim1);
@@ -306,21 +283,7 @@ int main(void)
 		if (pid_flag == 1) {
 			//uint32_t start_exec = DWT->CYCCNT;
 
-			// B4.3A tam thoi: Lay sequence sau khi scheduler chap nhan, truoc clear
-			uint32_t seq_before = tim10_event_count;
-
 			pid_flag = 0;
-
-			// B4.3A tam thoi: Tim witness event bi clear, khong doi scheduler
-			uint32_t seq_after = tim10_event_count;
-			uint8_t flag_after = pid_flag;
-			uint32_t seq_confirm = tim10_event_count;
-			if (seq_after != seq_confirm) {
-				probe_unstable_count++;
-			} else if ((seq_after != seq_before) && (flag_after == 0U)) {
-				race_count++;
-			}
-			control_run_count++;
 
 			if (fs_i6.L_UD <= 1015 || motor_lock_flag == 1) {
 				reset_error(&pid_roll_outer);
@@ -659,36 +622,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			mpu_loss_cnt = 0;
 		}
 	}
-	//Nếu là ngắt TIM10 cho PID thì đảo chân để test cái, mốt xoá sau
 	if (htim->Instance == htim10.Instance){
-		//Debug lần đầi với DWT
-		// B3 tam thoi: Bo timestamp dau, thong ke cac khoang do hop le
-		uint32_t current_tick = DWT->CYCCNT;
-		if (tim10_timestamp_valid != 0U) {
-			uint32_t delta = current_tick - dwt_last_tim10_tick;
-			dwt_tim10_period_ticks = delta;
-			if (tim10_period_sample_count == 0U) {
-				tim10_period_min_ticks = delta;
-				tim10_period_max_ticks = delta;
-			} else {
-				if (delta < tim10_period_min_ticks) tim10_period_min_ticks = delta;
-				if (delta > tim10_period_max_ticks) tim10_period_max_ticks = delta;
-			}
-			tim10_period_sample_count++;
-		} else {
-			tim10_timestamp_valid = 1U;
-		}
-		dwt_last_tim10_tick = current_tick;
-
-		// Ở xung nhịp 100 MHz: 100 ticks = 1 us
-		//tim10_period_us = (float)dwt_tim10_period_ticks / 100.0f;
-
-		//Chân này ko còn chức năng debug nữa, chuyển dịch sang INT của MPU
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
-
-
-		// B4.3A tam thoi: Dem event ngay truoc writer pid_flag
-		tim10_event_count++;
 		pid_flag = 1;
 	}
 }
