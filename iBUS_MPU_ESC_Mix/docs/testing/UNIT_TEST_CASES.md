@@ -4,8 +4,8 @@
 
 - Dự án: `iBUS_MPU_ESC_Mix` trong repository `Basic_Drone`.
 - Nhánh đối chiếu: `test/cpputest`; commit nguồn: `9280bae`.
-- Chưa có `UNIT_TEST_PLAN.md` tại thời điểm lập hồ sơ này; không tạo kế hoạch thay thế.
-- Hồ sơ chỉ mô tả thiết kế kiểm thử, chưa có mã CppUTest, chưa biên dịch hoặc chạy kiểm thử.
+- Kế hoạch chung: [UNIT_TEST_PLAN.md](UNIT_TEST_PLAN.md).
+- Hồ sơ gồm thiết kế và kết quả kiểm thử được cập nhật theo tiến độ. Phiên ngày `23/10/2026` sử dụng HEAD `e7cde55` cùng các file harness chưa commit; mã PID production không thay đổi so với baseline `9280bae`.
 
 ## UT-PID-001 — Kiểm thử cascade P-only
 
@@ -13,7 +13,7 @@
 
 - Hàm kiểm thử: `pid_pitch_roll()`.
 - Mục tiêu: Kiểm tra kết quả hai vòng Outer/Inner và trạng thái tích phân khi `KI=KD=0`.
-- Trạng thái: `DESIGNED / NOT RUN`.
+- Trạng thái: `EXECUTED / PASS` — ngày `23/10/2026`, 1 test, 4 assertions, exit code `0`.
 
 ### Bằng chứng từ mã nguồn
 
@@ -22,7 +22,7 @@
 - `Core/Src/pid.c`, dòng 15–41: chuyển đơn vị gyro, ánh xạ RC, tính và cập nhật vòng Outer.
 - `Core/Src/pid.c`, dòng 49–71: lấy đầu ra Outer làm rate setpoint, tính và cập nhật vòng Inner.
 - Mã nguồn vẫn cập nhật `error_sum` của cả hai vòng khi `KI=0`; chỉ thành phần đầu ra tích phân bằng 0.
-- Các giá trị kỳ vọng dưới đây phù hợp với mã nguồn đã đối chiếu; chưa được xác nhận bằng thực thi.
+- Các giá trị kỳ vọng dưới đây phù hợp với mã nguồn đã đối chiếu và đã được kiểm tra bằng 4 assertions trong phiên `23/10/2026`; không thay đổi expected sau khi chạy.
 
 ### Điều kiện ban đầu
 
@@ -79,7 +79,17 @@ Sau một lần gọi, kiểm tra đủ bốn giá trị:
 | `outer.error_sum` | `0.006` | `0.00001` |
 | `inner.error_sum` | `0.012` | `0.00001` |
 
-Một giá trị đạt khi hữu hạn và có độ lệch tuyệt đối so với giá trị kỳ vọng không vượt quá `0.00001`. Ca kiểm thử chỉ đạt khi cả bốn giá trị đều đạt. Hiện chưa có kết quả thực thi để kết luận đạt hoặc không đạt.
+Một giá trị đạt khi hữu hạn và có độ lệch tuyệt đối so với giá trị kỳ vọng không vượt quá `0.00001`. Ca kiểm thử chỉ đạt khi cả bốn giá trị đều đạt. Kết quả phiên `23/10/2026`: cả 4 assertions đều PASS.
+
+### Kết quả thực thi ngày 23/10/2026
+
+- Ca CppUTest tương ứng: `PID_PitchRoll.POnly_Cascade` trong `tests/pid/test_pid.cpp`.
+- Đã compile chính `Core/Src/pid.c` bằng GCC UCRT64, compile hai file test bằng G++ UCRT64 và liên kết với `libCppUTest`.
+- Kết quả: `OK (1 tests, 1 ran, 4 checks, 0 ignored, 0 filtered out, 0 ms)`; exit code `0`.
+- Không có warning/error compiler hoặc linker trong lượt chạy thành công được ghi nhận.
+- Lệnh tái thực thi từ thư mục dự án trong MSYS2: `bash tests/pid/run_tests.sh`.
+- Bằng chứng, định danh harness, các lần khởi chạy bị chặn và giới hạn: [UNIT_TEST_LOG.md — phiên UT-SESSION-2026-10-23-001](UNIT_TEST_LOG.md#ut-session-2026-10-23-001).
+- Đây là kết quả của lượt build/run đã quan sát trong phiên làm việc; lượt cập nhật hồ sơ kết thúc phiên không chạy lại test.
 
 ### Giới hạn
 
@@ -87,4 +97,4 @@ Một giá trị đạt khi hữu hạn và có độ lệch tuyệt đối so v
 - Chưa kiểm tra hành vi tại hoặc vượt giới hạn tích phân.
 - Chưa kiểm tra nhiều lần gọi liên tiếp hoặc các trạng thái ban đầu khác.
 - Chưa kiểm tra timing MCU hoặc phản ứng motor.
-- Chưa xác nhận khả năng biên dịch và liên kết CppUTest trên Windows.
+- Build/link đã xác nhận cho harness PID và môi trường của phiên này; chưa xác nhận các module khác hoặc môi trường khác.
