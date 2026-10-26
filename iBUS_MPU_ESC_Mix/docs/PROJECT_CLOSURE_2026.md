@@ -1,6 +1,6 @@
 # Kế hoạch phục hồi và kết thúc dự án năm 2026
 
-Cập nhật: 24/10/2026. Chủ dự án đã phê duyệt POLICY-01–06. Đây là nguồn điều hành cho dự án quadcopter STM32F411 phát triển firmware từ tháng 5/2026; bằng chứng chi tiết tiếp tục nằm trong hồ sơ audit và testing.
+Cập nhật: 26/10/2026. Chủ dự án đã phê duyệt POLICY-01–06 và chốt CL-01 ở mức Source/Design Review only. Đây là nguồn điều hành cho dự án quadcopter STM32F411 phát triển firmware từ tháng 5/2026; bằng chứng chi tiết tiếp tục nằm trong hồ sơ audit và testing.
 
 Mở [DAILY_WORK.md](DAILY_WORK.md) để bắt đầu phiên tiếp theo. Kế hoạch và ngày dự kiến không phải kết quả nghiệm thu.
 
@@ -36,6 +36,19 @@ SOURCE FACT là nội dung đọc từ code/Git. RUNTIME EVIDENCE là kết qu�
 
 [CURRENT_STATUS cũ](audit/CURRENT_STATUS.md) còn chỉ tới bước trước triển khai PRIMASK và trước cleanup instrumentation. Không dùng riêng file này làm trạng thái điều hành hiện tại. DWT/counter B3/B4.3A đã cleanup tại `6562a4e`/`94f1a80`; phép đo mới cần instrumentation được review.
 
+### 2.1. Chốt CL-01 ngày 26/10/2026
+
+**CL-01: DONE — Source/Design Review only.** Chủ dự án đã review và chốt bảng phân tích ngày 26/10. Đây là hoàn thành nhiệm vụ rà soát tài liệu/source theo thiết kế hiện hành, **không phải firmware safety PASS, hardware verification PASS hoặc quyết định GO**. Ngày 25/10 nghỉ vì việc cá nhân, không có kết quả CL-01 mới.
+
+Firmware đối chiếu: `develop@eff243d734474ae0a37ce29ca1a97688822cc33c`, cùng cây `Core/` với baseline `6562a4e`. Các hành vi SOURCE FACT được giữ:
+
+- Boot khởi tạo lock; ARM dùng SwA=2000, ga <=1010 và fresh frame; DISARM SwA=1000 ghi CCR=12500. ESC calibration bằng SwB là chức năng có chủ đích: CCR=25000 trong 7 giây, rồi 12500 trong 8 giây; không qua ARM lock không tự là bug.
+- Khi đang unlocked và không bị nhánh ưu tiên khác chặn, mất iBUS/failsafe ghi minimum=13000, không phải ramp-down; mất MPU theo watchdog raw Z dẫn tới lock=12500 khi main xử lý. Pin yếu chỉ cảnh báo còi, không RTL. Watchdog TIM11 đặt cờ; output bảo vệ phụ thuộc main còn thực thi.
+- Tham chiếu: [main.c](../Core/Src/main.c), [motor.c](../Core/Src/motor.c), [battery.c](../Core/Src/battery.c). Hành vi ESC/FC thực, waveform, độ trễ fault/phục hồi và output khi CPU/main dừng còn UNRESOLVED. Giữ A5 UNKNOWN / NEEDS REVIEW, B4 target verification UNRESOLVED, F01–F03 OPEN / UNRESOLVED và trạng thái safety gates tại mục 4.
+- NO-GO có motor nếu hardware/nguồn chưa đủ điều kiện, chưa tháo cánh, chưa kiểm soát mapping/output/calibration hoặc chưa có cách ngắt nguồn phù hợp. Không giả định lock/minimum đồng nghĩa motor đã dừng. Flight chưa GO khi thiếu bằng chứng gate liên quan; không tiếp tục hoặc tăng ga khi output bất thường hay mất khả năng dừng phép thử.
+
+Không mở lại thiết kế ARM/DISARM, failsafe hoặc calibration trong CL-01; phần cần hardware được giữ mở cho các nhiệm vụ hiện có, không tạo backlog mới.
+
 ## 3. Milestone
 
 | Mốc | Thời gian năm 2026 | Đầu ra dự kiến / checkpoint |
@@ -69,7 +82,7 @@ Trạng thái các gate hiện tại: CHƯA XÁC MINH ĐỦ. Checklist dưới �
 
 Bench logic/PWM: hardware đủ điều kiện cấp nguồn và nguồn motor được cô lập theo thiết lập. Bench có motor: thêm kiểm tra nguồn/ESC/mapping/output bảo vệ, tháo cánh, phương pháp giữ/đỡ phù hợp và ngắt nguồn. Flight: phải qua các gate liên quan; không yêu cầu mọi mục audit đều PASS nhưng không bỏ gate có rủi ro thực tế.
 
-Source hiện tại dùng minimum khi mất iBUS/failsafe, còi khi pin yếu, lock khi mất MPU. Đây là SOURCE FACT để CL-01 review, không phải chứng minh policy đó đủ an toàn cho bay. Không có căn cứ tuyên bố RTL hoặc hạ ga theo một quá trình được kiểm chứng.
+Source hiện tại dùng minimum khi mất iBUS/failsafe, còi khi pin yếu, lock khi mất MPU. CL-01 đã review các SOURCE FACT này tại mục 2.1; kết quả không chứng minh policy đó đủ an toàn cho bay. Không có căn cứ tuyên bố RTL hoặc hạ ga theo một quá trình được kiểm chứng.
 
 ## 5. Master Backlog
 
@@ -77,7 +90,7 @@ Source hiện tại dùng minimum khi mất iBUS/failsafe, còi khi pin yếu, l
 
 | ID / workstream / công việc | Closure / flight attempt | Ưu tiên / trạng thái | Tiên quyết / milestone | Definition of Done và evidence/output | Nguồn kỹ thuật |
 | --- | --- | --- | --- | --- | --- |
-| CL-01 / AUDIT / Safety contract và phạm vi sử dụng | MUST / MUST | P0 / READY | Baseline đã khảo sát; G0 | Bảng sự kiện–input/state–output hiện tại–hành vi mong muốn; NO-GO, mâu thuẫn và unknown có người review; không tự đóng issue. | Mục 2, 4, nguồn audit tại mục 10; `Core/Src/main.c`. |
+| CL-01 / AUDIT / Safety contract và phạm vi sử dụng | MUST / MUST | P0 / DONE — Source/Design Review only | Chủ dự án chốt ngày 26/10/2026; G0 | Bảng source/design, giới hạn và NO-GO đã được review; hoàn thành rà soát, không phải firmware safety PASS hoặc hardware verification PASS. Không đóng issue/gate và không thiết kế lại policy. | Mục 2.1, 4 và nguồn audit tại mục 10; `Core/Src/main.c`. |
 | CL-02 / HARDWARE / Inventory và phương án kiểm chứng | MUST xác định blocker / MUST trước cấp nguồn | P0 / READY | Thiết bị/thông tin thực khi có; G0–G1 | Inventory từng thiết bị, tình trạng xác nhận/UNKNOWN, PCB/MCU/pinout/nguồn/debug và thứ còn chờ; chọn cách kiểm chứng theo tình trạng thực. | `iBUS_MPU_ESC_Mix.ioc`, hồ sơ audit; không giả định PCB V2 đạt. |
 | CL-03 / UNIT_TEST / PID CppUTest | MUST cho phần chọn có giá trị / SHOULD; FAIL liên quan flight phải xử lý | P1 / READY | Harness PID; G0 và thời gian offline tới 06/12 | Contract/oracle độc lập; test P/I/D/state/yaw theo giá trị/chi phí; log/revision/phạm vi có review. Không tuyên bố toàn PID PASS từ một ca. | CASES/LOG/PLAN tại mục 10; `79c2772`, `Core/Src/pid.c`. |
 | CL-04 / UNIT_TEST / iBUS CppUTest | MUST cho logic input chọn lọc / SHOULD; target input vẫn MUST | P0 / READY | Contract frame/state/failsafe được làm rõ; G0–G2, offline tới 06/12 | Test production checksum/decode/parser/stream và phần ownership logic cô lập được; giữ input lỗi, log, seed nếu có; đánh dấu NEEDS REVIEW khi thiếu oracle. | PLAN, `Core/Src/iBUS.c`; `9280bae`; không thay B4 target. |
@@ -89,15 +102,17 @@ Source hiện tại dùng minimum khi mất iBUS/failsafe, còi khi pin yếu, l
 | CL-10 / DOCUMENTATION / Evidence package và portfolio | MUST / SHOULD; bằng chứng gate vẫn MUST | P1 / READY | Thu thập ngay, chốt sau baseline cuối; Closure | Sơ đồ, log/capture/revision, debug case studies và CV đúng đóng góp/AI hỗ trợ; không nhân bản register hay test cases. | Hồ sơ audit/testing; commit `4d3b6df`, `34ec229`, `9280bae`, `79c2772`. |
 | CL-11 / DOCUMENTATION / Final review và closure | MUST / MUST review riêng nếu xin GO | P1 / BLOCKED | Các MUST closure có kết quả hoặc blocker/giới hạn được review; Closure | Chốt revision, mức kết thúc có evidence, Known Issues/giới hạn, README/portfolio và quyết định của chủ dự án trước 31/12; không yêu cầu 46/46 PASS. | Toàn bộ nguồn dẫn tại mục 10 và kết quả phiên thực tế. |
 
-Tại lúc thiết lập: READY 8; IN PROGRESS 0; BLOCKED 3; DEFERRED 0; DONE 0; UNKNOWN 0 ở cấp CL. Các unknown kỹ thuật nằm trong mục 2/8, không bị xóa bởi trạng thái READY của task. Việc lập hai tài liệu này không hoàn thành CL-01 hoặc CL-11.
+Cập nhật ngày 26/10: READY 7; IN PROGRESS 0; BLOCKED 3; DEFERRED 0; DONE 1; UNKNOWN 0 ở cấp CL. CL-01 DONE chỉ cho Source/Design Review; không đóng G0, CL-11, Known Issues hoặc safety gates. Khi FC chưa sẵn sàng, ưu tiên CL-03–06; khi hardware đủ điều kiện, ưu tiên bring-up và kiểm chứng thực tế theo POLICY-05.
 
 ## 6. Chính sách CppUTest tự động hóa
+
+CL-03–06 là workstream Host-Based Firmware Verification bằng CppUTest, kiểm chứng về mặt lý thuyết rằng production firmware hoạt động đúng thiết kế hiện hành: từng module và sự phối hợp giữa các module khi có thể cô lập hợp lý. CL-01 là Source/Design Review trong systematic pre-flight audit; CppUTest không xây dựng, phán xét, thay đổi hoặc quyết định chính sách an toàn. Không tự đặt expected theo policy mới. Nếu chưa xác định được expected từ thiết kế hiện hành, ghi **NEEDS REVIEW**, không tự thiết kế lại safety để tạo oracle.
 
 Ưu tiên theo rủi ro/giá trị: PID, iBUS, motor logic; tiếp theo MPU math/conversion, Battery và Safety/Watchdog/control state có thể cô lập hợp lý. Không giới hạn số ca; không test lại toàn HAL/CMSIS. Nếu cần sửa production để cô lập, dừng tại đề xuất và xin phê duyệt thay đổi đó.
 
 | Codex chịu trách nhiệm chính | Người phát triển review |
 | --- | --- |
-| Khảo sát bổ sung có mục tiêu, contract, case, expected từ yêu cầu/công thức/vector độc lập; harness/stub/mock; compile/link production C thật; execute/regression; phân loại FAIL; lưu log/revision; chuẩn bị tài liệu và commit đề xuất. | Hàm/mục đích, input/preconditions, expected và căn cứ, actual, PASS/FAIL/BLOCKED/NEEDS REVIEW, ý nghĩa và giới hạn. Không bắt buộc tự viết test thường quy hoặc học sâu API. |
+| Chủ động khảo sát có mục tiêu, lập contract/case và expected độc lập theo thiết kế hiện hành; xây dựng harness/stub/mock; compile/link và chạy production code thật; regression, phân loại FAIL, lưu log/revision và báo cáo PASS/FAIL theo từng nhóm. Khi thiếu oracle thì NEEDS REVIEW; cần sửa production thì dừng xin phê duyệt. | Chức năng, input/preconditions, expected và căn cứ, actual, kết quả và giới hạn. Không bắt buộc tự viết test thường quy hoặc học sâu API/harness. |
 
 Quy trình: contract/oracle → harness → build/run → phân tích sai khác → regression → review nhóm. Không dùng output production làm expected, không thay expected/production để ép PASS, không gọi test mới thiết kế là PASS. FAIL giữ log gốc; sửa yêu cầu/expected phải có căn cứ và review. Host PASS không xác nhận timing, preemption, RF, bus vật lý, motor hoặc readiness bay. Không có oracle đáng tin thì NEEDS REVIEW.
 
@@ -160,6 +175,7 @@ Khi hồ sơ được tích hợp hợp lệ vào develop ở nhiệm vụ riên
 | --- | --- |
 | 24/10/2026 | Chủ dự án phê duyệt POLICY-01–06: mục tiêu flight có điều kiện trước 30/11, hard closure 31/12, risk-based audit, automation-first rộng có giá trị, hardware-first và ưu tiên portfolio tháng 12. |
 | 24/10/2026 | Thiết lập backlog CL-01–11 và Daily Work. Thay thế đề xuất cũ coi flight chỉ là phần ngoài kế hoạch; không xác nhận task kỹ thuật/gate đã hoàn thành. |
+| 26/10/2026 | Chủ dự án chốt CL-01 DONE — Source/Design Review only; không nâng trạng thái firmware/hardware/gates hoặc đóng issue. Làm rõ CppUTest chỉ kiểm chứng thiết kế hiện hành; ưu tiên CL-03–06 khi FC chưa sẵn sàng, hardware-first khi đủ điều kiện. Không mở thêm vòng thiết kế safety. |
 
 PROJECT_CLOSURE_2026.md là nguồn task/policy/milestone chính, thay khi có tiến độ trạng thái hoặc quyết định liên quan; DAILY_WORK.md điều phối phiên và cập nhật sau tiến độ thực tế, không tạo backlog thứ hai. Audit/testing giữ bằng chứng chi tiết; không audit lại toàn repo mỗi sáng, không tạo file từng ngày và không nhân bản Known Issues.
 

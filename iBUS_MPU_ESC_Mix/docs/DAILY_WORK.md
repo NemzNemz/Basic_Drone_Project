@@ -1,85 +1,65 @@
 # Điều phối công việc hằng ngày
 
-Cập nhật thiết lập: 24/10/2026. Nguồn task và chính sách duy nhất: [PROJECT_CLOSURE_2026.md](PROJECT_CLOSURE_2026.md). Trang này chỉ điều phối phiên, không thay thế hồ sơ audit/testing.
+Cập nhật: 26/10/2026. Nguồn task và chính sách duy nhất: [PROJECT_CLOSURE_2026.md](PROJECT_CLOSURE_2026.md). Trang này trả lời bốn câu hỏi cho phiên tiếp theo; không tạo backlog mới hoặc thay thế hồ sơ audit/testing.
 
-## A. Mốc hiện tại
+## A. Hôm nay làm gì?
 
 - Milestone: **G0 — Chuẩn bị và chốt phạm vi**, 24/10–31/10/2026.
-- Điều kiện hoàn thành G0: safety contract/NO-GO được review; inventory linh kiện/PCB/revision có trạng thái thật; checklist bring-up sẵn sàng; có checkpoint CppUTest hoặc blocker rõ.
+- **CL-01: DONE — Source/Design Review only**, chủ dự án chốt ngày 26/10. Không phải firmware safety PASS, hardware verification PASS hoặc quyết định GO; không mở lại thiết kế ARM/DISARM, failsafe hay ESC calibration trong CL-01.
+- Nếu FC **chưa được xác nhận sẵn sàng**, nhiệm vụ chính tiếp theo là **CL-03 — PID**, thuộc CL-03–06: Host-Based Firmware Verification bằng CppUTest. Tiếp tục từ harness và UT-PID-001 đã có; không khảo sát lại toàn repo hoặc làm lại CL-01.
+- CL-04 iBUS, CL-05 Motor và CL-06 runner/logic tích hợp được triển khai theo giá trị kỹ thuật và dependency; nếu nhóm hiện tại bị chặn, chọn task READY phù hợp từ backlog chính, không tạo task audit mới vì code smell.
+- Khi hardware được xác nhận đủ điều kiện, ưu tiên CL-02/CL-07 bring-up và kiểm chứng thực tế theo POLICY-05. Chốt CL-01 không tự mở khóa CL-07 hoặc cho phép chạy motor.
 - Ngày đích bay thử: trước 30/11, có điều kiện safety gates. Hạn cuối kết thúc: 31/12.
-- Đây là kế hoạch; chưa có bằng chứng G0 hoàn thành. [Roadmap và gates](PROJECT_CLOSURE_2026.md#3-milestone).
+- Đây là điều phối việc tiếp theo, chưa có test mới hoặc bằng chứng G0 hoàn thành từ lượt cập nhật này. [Roadmap và gates](PROJECT_CLOSURE_2026.md#3-milestone).
 
-## B. Nhiệm vụ hiện tại
+## B. Codex phải thực hiện việc gì?
 
-**Nhiệm vụ chính: CL-01 — Safety contract và phạm vi sử dụng. Trạng thái: READY, chưa hoàn thành.**
+1. Kiểm tra branch/HEAD, working tree, harness và kết quả gần nhất của nhóm được giao; giữ nguyên công việc và cấu hình cá nhân không liên quan.
+2. Từ thiết kế hiện hành, xác định chức năng, input/state/preconditions và expected độc lập bằng yêu cầu/công thức/vector. Chưa xác định được expected thì **NEEDS REVIEW**; không lấy output production làm oracle.
+3. Chủ động xây dựng harness/stub/mock cần thiết, compile và chạy production code thật; test module và phối hợp module khi hợp lý, không sửa production để thuận tiện test khi chưa được phép.
+4. Chạy nhóm test/regression, phân tích FAIL và báo cáo chức năng, input, expected, actual, kết quả và giới hạn; lưu revision/diff, toolchain, lệnh, exit code và bằng chứng vào hồ sơ testing hiện có.
 
-Mục tiêu: một bảng ngắn nối sự kiện/input/state tới output hiện tại, hành vi mong muốn, bằng chứng và điều kiện NO-GO. Ưu tiên vì phải biết chính xác hành vi bảo vệ trước khi bring-up/thử motor.
+CppUTest chỉ kiểm chứng về mặt lý thuyết production firmware đúng thiết kế hiện hành. Không xây dựng, phán xét, thay đổi hoặc quyết định safety policy; không tự đặt expected theo policy mới. Host/mock PASS không xác nhận hardware, timing, preemption, phản ứng motor hoặc safety gate.
 
-- Thời lượng linh hoạt 2 giờ 30 phút–4 giờ; mặc định **3 giờ 30 phút**.
-- Nhiệm vụ phụ duy nhất: CL-02 inventory, chỉ khi CL-01 đạt checkpoint hoặc cần dừng chờ bằng chứng và còn thời gian.
-- Không bắt đầu thêm CppUTest hoặc sửa firmware trong phiên thiết lập tài liệu.
-- Khi hardware sẵn sàng, đánh giá ưu tiên task bring-up flight-critical theo POLICY-05; không tự bỏ qua CL-01 hoặc safety gates.
+Đây là phạm vi các phiên triển khai được giao tiếp theo; lượt cập nhật tài liệu ngày 26/10 không chạy thêm test, sửa firmware hoặc chạy hardware. Không tự commit/push nếu nhiệm vụ triển khai đó chưa cho phép.
 
-## C. Checklist thao tác
+## C. Tôi cần review điều gì?
 
-Mọi ô dưới đây chưa được đánh dấu hoàn thành. Đây là mission tiếp theo, không phải những việc đã làm trong lần tạo trang.
+Review theo nhóm, không cần tự viết test thường quy hoặc học sâu API/harness:
 
-| Thời gian mặc định | Phân công | Hành động và đầu ra |
-| --- | --- | --- |
-| 00:00–00:15 | MANUAL | Mở trang này; ghi ngày, task, branch/HEAD và tình trạng hardware mới được xác nhận. Giữ baseline cũ nếu chưa có thông tin mới. |
-| 00:15–00:55 | CODEX | Từ kết quả khảo sát, chuẩn bị bảng boot/disarm, ARM, mất iBUS, mất MPU và pin yếu: input/precondition/state/output hiện tại, evidence và điều chưa rõ. Chỉ đọc bổ sung đoạn source cần thiết. |
-| 00:55–01:25 | REVIEW | Chủ dự án review bảng: hành vi source khác hành vi mong muốn ở đâu; không coi minimum là ramp-down hay còi là RTL; giữ câu hỏi an toàn chưa rõ. |
-| 01:25–01:35 | MANUAL | Nghỉ ngắn, ghi checkpoint để không mất mạch. |
-| 01:35–02:15 | CODEX | Đối chiếu có mục tiêu A5, B3 và Build PASS/revision từ nguồn đã có. Thiếu ảnh/log gốc thì ghi UNKNOWN và bước phân biệt, không tái kiểm kê repository. |
-| 02:15–02:50 | REVIEW | Chốt phạm vi bằng chứng, blocker và điều kiện NO-GO; giữ F01–F03 mở. Không tự chấp nhận rủi ro để đạt ngày bay. |
-| 02:50–03:15 | CODEX | Chuẩn bị kết quả CL-01 để review; nếu đạt checkpoint và còn thời gian, lập inventory CL-02 ngắn: đã có/chưa có/chưa xác nhận và phép kiểm tra tiếp. |
-| 03:15–03:30 | MANUAL / REVIEW | Cập nhật phần E/F bằng kết quả thật và ref; ghi sổ ngắn. Chỉ đổi trạng thái task nguồn khi có căn cứ. |
-
-- [ ] Định danh source và điều kiện hardware của phiên.
-- [ ] Có bảng safety contract và những quyết định còn mở.
-- [ ] Có nguồn hoặc nhãn UNKNOWN cho A5/B3/build revision.
-- [ ] Có điều kiện dừng và NO-GO theo phạm vi sử dụng.
-- [ ] Có checkpoint, evidence/ref và bước đầu phiên sau.
-
-Definition of Done cho checkpoint CL-01: bảng safety được chủ dự án review; biết hiện tại source làm gì, chưa biết gì và điều kiện nào cấm thử tiếp. Không yêu cầu sửa xong firmware hoặc biến các unknown thành PASS trong một phiên.
-
-Bằng chứng cần lưu trong hồ sơ phù hợp: phiên/ngày, source revision/diff nếu có, reference file/commit, kết luận và người review; liên kết artifact gốc khi có. Mẫu bảng: sự kiện | input/precondition/state | output source | hành vi yêu cầu | evidence | kết luận/giới hạn.
-
-Điều kiện dừng: hết thời lượng; cần phép đo/hardware chưa có; cần sửa production; expected/policy chưa thống nhất; hoặc bất thường an toàn. Ghi blocker và bước tiếp theo, không kéo dài để ép PASS. Không chạy build/test/flash/hardware trong lượt thiết lập này.
-
-## D. Tóm tắt workstream
-
-| Workstream | Tình trạng được biết lúc thiết lập | Bước điều phối |
-| --- | --- | --- |
-| Hardware | Đang mua linh kiện, dự kiến cuối tháng 10; chưa xác nhận đủ điều kiện cấp nguồn hoặc PCB V2 đã bring-up. | CL-02 inventory; CL-07 BLOCKED đến khi điều kiện thực được xác nhận. [Phụ thuộc](PROJECT_CLOSURE_2026.md#8-phụ-thuộc-hardware-và-thông-tin-còn-thiếu). |
-| Audit / Known Issues | B4 chưa target verification, A5 cần review; F01–F03 còn mở. Không có kết quả mới từ việc tạo tài liệu. | CL-01 trước; register gốc và nguồn chi tiết nằm trong [liên kết bằng chứng](PROJECT_CLOSURE_2026.md#10-liên-kết-bằng-chứng). |
-| CppUTest | UT-PID-001 PASS lịch sử: 1 test, 4 assertions; không phải toàn PID đạt. Chưa có ca mới trong lần thiết lập. | CL-03–06 theo giá trị/chi phí; Codex triển khai, người phát triển review nhóm. [Chính sách](PROJECT_CLOSURE_2026.md#6-chính-sách-cpputest-tự-động-hóa). |
-| Portfolio | Chưa có bằng chứng CL-09/10/11 hoàn thành. Tháng 12 ưu tiên tài liệu/bằng chứng/CV. | Có thể gom bằng chứng sẵn; không mở tính năng mới để làm đẹp portfolio. |
-
-Không sao chép triệu chứng/root cause từng Known Issue vào trang này. Không tạo task cấp cao mới chỉ vì phát hiện code smell.
-
-## E. Chốt phiên
-
-Phần này dành cho kết quả thực tế của mission, hiện chưa có phiên CL-01 hoàn tất. Lần thiết lập chỉ tạo tài liệu điều phối, không nghiệm thu safety contract.
-
-| Trường | Giá trị cần cập nhật sau phiên |
+| Nội dung | Câu hỏi review |
 | --- | --- |
-| Ngày / thời lượng thực | Chưa thực hiện mission |
-| Task và trạng thái sau phiên | CL-01 READY; chỉ đổi theo bằng chứng |
-| Đã hoàn thành | Chưa ghi nhận kết quả thực hiện CL-01 |
-| Evidence / artifact | Chưa có artifact mới của mission |
-| Git commit/ref của phiên | Chưa có commit thực hiện CL-01; commit tạo tài liệu không thay thế kết quả kỹ thuật |
-| Blocker | Cập nhật sau review; unknown ban đầu được dẫn trong kế hoạch |
-| Phần chưa xong | Safety contract, đối chiếu có mục tiêu và review kết quả |
-| Quyết định / next checkpoint | Chưa có quyết định nghiệm thu mới |
+| Chức năng | Test đang xác nhận hàm/module hoặc phối hợp nào của thiết kế hiện hành? |
+| Input | Input, state và preconditions có đúng phạm vi cần kiểm chứng không? |
+| Expected | Kết quả kỳ vọng, căn cứ và tolerance có độc lập, rõ ràng và không thêm policy mới không? |
+| Actual / kết quả | Đã thực chạy những gì, actual hoặc assertion nào đạt/sai, exit code là gì? |
+| Giới hạn | PASS/FAIL/NEEDS REVIEW có ý nghĩa gì; phần nào vẫn cần hardware hoặc chưa được test? |
 
-Sau phiên, ghi kết quả có ngày và link tới hồ sơ audit/test thích hợp, giữ lịch sử FAIL ở nguồn. Không tạo file Markdown mới mỗi ngày. Không tự commit/push nếu phiên đó chưa được cho phép.
+Chỉ xác nhận kết quả trong phạm vi test; không đóng A5, B4 target verification, F01–F03 hoặc safety gates từ Host Unit Test PASS.
+
+## D. Kết thúc phiên khi nào?
+
+- Có một nhóm kết quả kèm bằng chứng đủ để người phát triển review, kể cả kết quả FAIL hoặc NEEDS REVIEW; không cần ép mọi ca PASS để kết thúc phiên.
+- Hoặc hết thời lượng phiên đã chọn, mặc định **3 giờ 30 phút**; ghi checkpoint và bước tiếp theo, không kéo dài để ép PASS.
+- Dừng sớm nếu thiếu oracle theo thiết kế hiện hành, cần sửa production, cần hardware chưa có, hoặc chi phí mock tăng mà không tạo bằng chứng có ích. Ghi blocker, không mở vòng thiết kế safety mới.
+- Cuối phiên chỉ cập nhật kết quả thực, ref và bước tiếp theo trong hồ sơ hiện có. Không tạo báo cáo dài, file theo ngày hoặc backlog song song.
+
+## E. Chốt phiên ngày 26/10/2026
+
+| Trường | Kết quả đã chốt |
+| --- | --- |
+| Ngày / thời lượng | 26/10/2026; không ghi nhận thời lượng thực. Ngày 25/10 nghỉ cá nhân, không có kết quả CL-01 mới. |
+| Task | **CL-01: DONE — Source/Design Review only**, theo quyết định của chủ dự án. Không phải firmware safety PASS hoặc hardware verification PASS. |
+| Evidence / ref | Bảng source/design đã review ngày 26/10; tóm tắt hành vi, giới hạn và NO-GO tại [mục 2.1](PROJECT_CLOSURE_2026.md#21-chốt-cl-01-ngày-26102026). Source `develop@eff243d`, cây `Core/` không đổi so với `6562a4e`. Không có phép đo hardware mới. |
+| Giữ nguyên | A5 UNKNOWN / NEEDS REVIEW; B4 target verification UNRESOLVED; F01–F03 OPEN / UNRESOLVED; safety gates chưa kiểm chứng. Không tự mở khóa bring-up/motor/flight. |
+| CppUTest | UT-PID-001 PASS lịch sử ngày 23/10: 1 test, 4 assertions, exit code 0. Chưa có kết quả mới trong lượt chốt này. |
+| Tiếp theo | Nếu FC chưa sẵn sàng: CL-03–06, bắt đầu CL-03. Nếu hardware đủ điều kiện: ưu tiên bring-up và kiểm chứng thực tế trong backlog hiện có. |
 
 ## F. Điểm bắt đầu phiên tiếp theo
 
-**Bước đầu tiên:** thực hiện dòng 00:00–00:15 rồi giao Codex lập bảng safety từ `Core/Src/main.c` theo baseline hiện hành; chưa sửa code.
+**Bước đầu tiên:** xác nhận có thông tin hardware mới hay không, kiểm tra branch/HEAD và mở checkpoint testing gần nhất. Chưa có xác nhận FC sẵn sàng thì tiếp tục CL-03, không làm lại CL-01 hoặc đọc lại toàn bộ 46 mục.
 
-Nếu phiên CL-01 chưa xong, tiếp tục đúng dòng/checkpoint bị dừng. Nếu đã đủ DoD và được review, chuyển CL-02 để xác định điều kiện hardware; khi hardware chưa sẵn sàng, chọn CL-03/04 phù hợp từ backlog chính. Không đọc lại toàn bộ báo cáo 46 mục.
+Codex thực hiện theo phần B; người phát triển review theo phần C; kết thúc theo phần D. Nguồn nhiệm vụ duy nhất vẫn là [Master Backlog](PROJECT_CLOSURE_2026.md#5-master-backlog); không thêm nhiệm vụ audit nếu thiếu tác động kỹ thuật thực tế.
 
 Một ngày một nhiệm vụ chính, tối đa hai nhiệm vụ phụ; không đổi workstream liên tục. Task BLOCKED phải có điều kiện mở khóa rồi mới chuyển task READY.
 
