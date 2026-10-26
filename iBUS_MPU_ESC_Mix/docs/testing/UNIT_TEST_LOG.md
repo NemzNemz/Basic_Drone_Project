@@ -108,3 +108,48 @@ Các hash được kiểm tra sau lượt chạy thành công và đối chiếu
 - Không có raw log riêng, timestamp chính xác hoặc toàn bộ metadata công cụ thu đồng thời trong lượt build/run. Bản ghi này giữ rõ giới hạn nguồn bằng chứng.
 - Không xác nhận timing MCU, interrupt concurrency, hardware MPU/ESC hoặc phản ứng motor; không dùng PASS này để đóng finding pre-flight ngoài phạm vi logic đã test.
 - Công việc tiếp theo được đề xuất: review hồ sơ và harness, quyết định phạm vi commit không gồm IDE cá nhân/build artifacts; sau đó mới giao nhiệm vụ bổ sung contract/test hoặc bằng chứng thực thi. Không tự thực hiện bước tiếp theo trong lượt chốt phiên.
+
+## UT-SESSION-2026-10-26-FW-001
+
+### Kết quả và phạm vi
+
+- Ngày 26/10/2026; final run bắt đầu 11:59:34 UTC, tức 18:59:34 Asia/Bangkok.
+- Nhánh nguồn `test/cpputest@94f1a8028dd9a58ce51ee851348bf735bf80ba6f`; làm việc trong worktree riêng trên `test/cpputest-firmware`.
+- Harness revision `7268b82ce5e4735617f79f02fe654410c3fb0554` đã commit trước final regression.
+- **Final: 77 tests, 77 ran, 501 checks, 0 ignored, 0 filtered out, exit code 0.** Không có production-test FAIL trong các ca đã chạy.
+- Compile production `pid.c/iBUS.c/mpu6050.c/motor.c/battery.c/unstuck_i2c.c/main.c` nguyên bản bằng GCC UCRT64. Giữ nguyên ca `UT-PID-001` cũ và expected; bổ sung 76 ca.
+- Phân loại toàn bộ 18 tệp C trong Core/Src; không tạo test từng wrapper generated hoặc mô phỏng toàn STM32.
+- [Firmware Verification Matrix và inventory](UNIT_TEST_SUMMARY.md); [77 ca với input/expected/actual/giới hạn](FIRMWARE_TEST_CASES.md); [raw evidence](evidence/2026-10-26/firmware-host/).
+
+### Thực thi và tái lập
+
+```bash
+bash tests/firmware/run_tests.sh
+bash tests/firmware/run_tests.sh -r2
+FW_OPT=-O2 bash tests/firmware/run_tests.sh
+```
+
+MSYS2 UCRT64 GCC/G++16.2.0, target x86_64-w64-mingw32, CppUTest4.0; C GNU11/C++11. Flags và hash source/harness/executable được lưu theo run. Object/executable ở `tests/firmware/build/` bị ignore, không đưa vào Git.
+
+| Lượt | Kết quả / xử lý |
+| --- | --- |
+| 113410Z-2022 | Exit1 trước compile: khác Git CRLF comparison giữa MSYS2 và Git Windows; sửa runner dùng `-c core.autocrlf=true` riêng lệnh Git, không đổi source/config |
+| 114634Z-600 | 69 tests/452 checks PASS; warning indentation trong harness được thêm braces trước final, không đổi expected |
+| 115112Z-1361 | 77 tests/501 checks PASS |
+| 115448Z-1049 | Repeat `-r2`: 2×77 tests/501 checks, exit0; 154 lượt, không phải154 ca khác nhau |
+| Nested Bash chưa tìm thấy bash | Exit1 trước runner; dùng /usr/bin/bash tường minh và chạy lại; ghi environment-notes.txt |
+| 115555Z-1199 | Optimization host `-O2`:77/501, exit0 |
+| 115756Z-1613 | Negative filter NO_SUCH_GROUP:0 ran, exit1 đúng mong muốn; không ghi thành production FAIL |
+| 115934Z-1427 | Final O0 trên harness commit7268b82:77/501, exit0 |
+
+Hai warning final ở production `motor.c:26,33`: unused parameter `hw_esc_htim`, giữ nguyên. Không có warning harness mới trong final. Không xóa log lỗi môi trường hoặc thay expected theo actual. Final code đã được regression trước commit tài liệu; báo cáo/evidence không sửa source/test đã chạy.
+
+### Ý nghĩa và giới hạn
+
+- Test toán/state tuần tự và các luồng tích hợp có oracle theo thiết kế hiện hành; không xây dựng hoặc phán xét safety policy.
+- Main thật chạy hữu hạn qua harness C; HAL chỉ cấp input và lưu lời gọi/register. Không thay PID/filter/parser/mixer bằng mock.
+- Snapshot test chèn publish mới sau restore PRIMASK giả, xác nhận main dùng snapshot; không xác nhận instruction PRIMASK, NVIC/preemption hoặc mọi interleaving trên Cortex-M4.
+- Non-BERR recovery/TIM2 polling giữ BLOCKED/PARTIALLY TESTABLE; bus, DMA, clock, timing, physical orientation, ESC/motor và target fault response cần hardware.
+- Invalid ngoài contract hoặc thiếu oracle như null/length khác32/non-finite/calibration read failure giữ NEEDS REVIEW; không tự đặt expected safety mới.
+- Không sửa firmware, `tests/pid/`, `UNIT_TEST_PLAN.md`, lịch sử ngày23/10, `CURRENT_STATUS.md`, `DAILY_WORK.md` hoặc `PROJECT_CLOSURE_2026.md`. Không đóng finding/safety gate hay merge develop.
+- Cấu hình cá nhân .vscode và worktree CL-01 được giữ riêng. Kết quả PASS không xác nhận toàn firmware đúng hoặc đủ điều kiện bay.

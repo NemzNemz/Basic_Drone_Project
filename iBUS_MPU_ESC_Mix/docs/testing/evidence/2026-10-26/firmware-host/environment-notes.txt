@@ -1,0 +1,18 @@
+Ghi chú môi trường — 26/10/2026
+Các log .log, SHA256SUMS.txt và exit_code.txt được sao chép nguyên byte từ build/runs.
+observations.tsv được trích các dòng OBS của final run, không phải expected tạo lại từ actual.
+
+Một lần gọi ngoài runner:
+C:/msys64/usr/bin/bash.exe -c 'FW_OPT=-O2 bash tests/firmware/run_tests.sh'
+Output: /usr/bin/bash: line 1: bash: command not found
+Exit code: 1
+Chưa chạy runner hoặc test. Sau đó gọi /usr/bin/bash tường minh và run -O2 thành công.
+Không phân loại đây là FAIL production.
+
+Lần runner đầu tiên dùng Git MSYS2 và gặp khác biệt hệ thống core.autocrlf.
+Git Windows đã kiểm tra production nguyên vẹn; thay đổi runner chỉ thêm -c core.autocrlf=true
+cho lệnh Git riêng lẻ, không thay Git config hoặc line ending production.
+Log có apparent diff được giữ nguyên để bảo toàn lịch sử lỗi môi trường.
+
+Bằng chứng không bao gồm executable/object. SHA256SUMS.txt ghi định danh binary lúc chạy.
+Đường dẫn tuyệt đối trong raw log là worktree của phiên, không phải yêu cầu vị trí cài lại.

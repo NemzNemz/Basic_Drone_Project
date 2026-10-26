@@ -1,0 +1,4 @@
+*.log -text -diff
+SHA256SUMS.txt -text
+exit_code.txt -text
+observations.tsv text eol=lf

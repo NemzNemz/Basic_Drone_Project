@@ -1,0 +1,977 @@
+RUN_DIR=/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/build/runs/20261026T115448Z-1049
+UTC=2026-10-26T11:54:48Z
+SOURCE_BASELINE=94f1a8028dd9a58ce51ee851348bf735bf80ba6f
+HOST_OPTIMIZATION=-O0
+94f1a8028dd9a58ce51ee851348bf735bf80ba6f
+?? tests/firmware/
+gcc.exe (Rev6, Built by MSYS2 project) 16.2.0
+g++.exe (Rev6, Built by MSYS2 project) 16.2.0
+x86_64-w64-mingw32
+prefix=/ucrt64
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: CppUtest
+URL: https://github.com/cpputest/cpputest
+Description: Easy to use unit test framework for C/C++
+Version: 4.0
+Cflags: -I${includedir}
+Libs: -L${libdir} -lstdc++ -lCppUTest -lCppUTestExt
+COMMON_FLAGS=-O0 -g -Wall -Wextra -ffunction-sections -fdata-sections -DFIRMWARE_HOST_TEST -DPID_HOST_TEST -include /c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/host_compat.h -I/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc -I/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware 
+COMPILE_PRODUCTION=pid
+COMPILE_PRODUCTION=iBUS
+COMPILE_PRODUCTION=mpu6050
+COMPILE_PRODUCTION=motor
+C:/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Src/motor.c: In function 'Motor_Lock':
+C:/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Src/motor.c:26:36: warning: unused parameter 'hw_esc_htim' [-Wunused-parameter]
+   26 | void Motor_Lock(TIM_HandleTypeDef *hw_esc_htim){
+      |                 ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+C:/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Src/motor.c: In function 'Motor_Min_Throttle':
+C:/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Src/motor.c:33:44: warning: unused parameter 'hw_esc_htim' [-Wunused-parameter]
+   33 | void Motor_Min_Throttle(TIM_HandleTypeDef *hw_esc_htim){
+      |                         ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+COMPILE_PRODUCTION=battery
+COMPILE_PRODUCTION=unstuck_i2c
+COMPILE_PRODUCTION=main
+COMPILE_TEST=/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/pid/test_main.cpp
+COMPILE_TEST=/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/pid/test_pid.cpp
+COMPILE_TEST=/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/fake_hal.cpp
+COMPILE_TEST=/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_application.cpp
+COMPILE_TEST=/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_ibus.cpp
+COMPILE_TEST=/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_integration.cpp
+COMPILE_TEST=/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_motor_battery.cpp
+COMPILE_TEST=/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_mpu.cpp
+COMPILE_TEST=/c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_pid_math.cpp
+LINK: g++ objects -lCppUTest -lm -Wl,--gc-sections
+7255fa93b3185c99fc339753d2cd4f16463d47f01eaf03b3de92bd41943ad5c7 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Src/pid.c
+990b98b92cadbec2368796bb3f1d8f82c8657e695e9b1db20ad7c82077e66e0d */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Src/iBUS.c
+83d407f5e5ee3f76cbcba9a2f300db9e02c147a432451750be9e75a15691a3d3 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Src/mpu6050.c
+9ab172caf55f99de2e47d985838c6960ccd1c8aec5efa3a6bcb0b06cc9e68ec0 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Src/motor.c
+b2946c173f76e36096e4bd7ab03b018917042ab6104b0cc8607ffb45b95a98aa */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Src/battery.c
+d4fb62f05e5bda85cbbef8e7b51da580a7bb48368fd05f121f4783c08c47bc76 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Src/unstuck_i2c.c
+73349494e5596c13cf734287b924e13496b905b96125b9cbadd317ea94b77257 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Src/main.c
+0ac97025a4065f07b7b65a906bd0c45ea800215434ed43c287c1685507f3f612 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/adc.h
+9b43a55a1c0e9426cb7333b8aff111cbd4e16613ea66608c404bbf8ec8f55a5f */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/battery.h
+7cf6f7450a29d26303cbba5a3ca8c6cb24a02635d6a5ba4d05141fdfc75c4c49 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/dma.h
+e2d62f964a0b7f238384ed6a20a181d09df9647240a268dc547acf5b35099f74 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/gpio.h
+61d9641a97b80c573f09879c391c8de322408051b8dca6ddd4af752653b0aef8 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/i2c.h
+841449d1b3fde03f7c7db357bdecfa7bde4042caec2b2fadb7f113f42fdaf3ee */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/iBUS.h
+e07a43ebc634ce451e2f80884378d112e048e06235fb49fdc2d9a2b5057d28c5 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/main.h
+2d29ce12a5d963d97fd369527b5713913054aeacfc58ea89e061242e242faed0 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/motor.h
+f63d203e64d12ab2b379891c072d619b25c2cb816842f756956ee82332dea700 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/mpu6050.h
+52ab413a9da682d240d28003f7a0b2200ef30929a247e6e9093e4b12b558bddb */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/pid.h
+40b8453df9da858f96d4d5434560f62cf8e863061604b271b1199dbedd05f060 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/stm32f4xx_hal_conf.h
+9de73a0190a458a64b4959437af78618a69dd91115e2a337be52cd96a02717d1 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/stm32f4xx_it.h
+6b3b49117ad6aef2edafc98861e87b6b847922ea726b9b775e407aec1b0505ef */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/tim.h
+32bfafdb7d8a945549150f5bc36eb00aa034f0a7e94c859fe3452e18035e67ff */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/unstuck_i2c.h
+2ddd1eaf81e3750b46df7222f4c34ae295bcdaaaa1152e4be4933d3a0ca90181 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/Core/Inc/usart.h
+9c4b0311d229865c08d5ab7753b1215528361428a1865e40230f1aaaf8c7cb0c */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/fake_hal.h
+f891f032e19aa2ad16ba3be06012f1e8edd6ed32fe2984166abf6fb168809ef8 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/host_compat.h
+0bbcf60a68b8f140e040b4b073f0e5dc509c67d077f79e637367ba8aca41de56 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_support.h
+25d29c492dd1078bb7a5cc3822d6568eb4a3aad819dc219f2f2eba3833e24100 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/host_control.c
+c49d8b26df4338c120a66182177389184a066603a601e99b6e3411f0d20270de */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/fake_hal.cpp
+d5017dd53ceb640930b4a6cbf2cb8fa8c7da4eb0df50baa934037e70a966ce24 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_application.cpp
+e5edd3f1ae5de622d2b1d454b85ae5593982acf3551062b39a04ad3d7030a4a1 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_ibus.cpp
+efaa31176a253810abc6d0f45554e83f4a7d216a42a1e539c48fe61d227512db */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_integration.cpp
+4dbaed1f4b6e9f5e44b28c223d3b2c5ea4b3a687d2952eacba36863f472ccd70 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_motor_battery.cpp
+8c32d5640754d81d187bbc7a649940846d15985e28ae223941cf71d1e3899c91 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_mpu.cpp
+15d57cdac6c9fdb9c3bd7799ceecfa959413a91ebbbcce7674695433873dd5fc */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/test_pid_math.cpp
+f78c569957cb43e18d21837a33b36c0f78c7d061d93ccf9bc4414b17aa4cd530 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/run_tests.sh
+e2425edb6428d75861bab64cd166dc628c356f7cd13208b5014b3be6bf9a4800 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/pid/test_pid.cpp
+5e39418377941676654115a0e9278622c9a021855f8235a8d3dd44b914dbf327 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/pid/test_main.cpp
+47d55d6c06f4a57edc38f77228726574494f120aba99fa4336bff4df1c47d379 */c/Users/ADMIN/.codex/worktrees/firmware-host-verification/Basic_Drone/iBUS_MPU_ESC_Mix/tests/firmware/build/test_firmware.exe
+RUN: timeout 120s test_firmware.exe -v -r2
+Test run 1 of 2
+TEST(PID_PitchRoll, POnly_Cascade) - 0 ms
+TEST(Application, APP014_ValidIbusToArmAndFailsafe)OBS|UT-APP-014|decoded_arm|expected=0|actual=0|tolerance=0
+OBS|UT-APP-014|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-014|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-014|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-014|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Application, APP013_EscCalibrationRegisterSequence)OBS|UT-APP-013|lock_unchanged|expected=1|actual=1|tolerance=0
+OBS|UT-APP-013|delay_count|expected=2|actual=2|tolerance=0
+OBS|UT-APP-013|high_ms|expected=7000|actual=7000|tolerance=0
+OBS|UT-APP-013|low_ms|expected=8000|actual=8000|tolerance=0
+OBS|UT-APP-013|high_CCR|expected=25000|actual=25000|tolerance=0
+OBS|UT-APP-013|low_CCR|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|high_CCR|expected=25000|actual=25000|tolerance=0
+OBS|UT-APP-013|low_CCR|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|high_CCR|expected=25000|actual=25000|tolerance=0
+OBS|UT-APP-013|low_CCR|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|high_CCR|expected=25000|actual=25000|tolerance=0
+OBS|UT-APP-013|low_CCR|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(Application, APP012_WatchdogOnlySetsFlagThenMainActs)OBS|UT-APP-012|CCR1|expected=18000|actual=18000|tolerance=0
+OBS|UT-APP-012|CCR2|expected=19000|actual=19000|tolerance=0
+OBS|UT-APP-012|CCR3|expected=20000|actual=20000|tolerance=0
+OBS|UT-APP-012|CCR4|expected=21000|actual=21000|tolerance=0
+OBS|UT-APP-012|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-012|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-012|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-012|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(Application, APP011_WatchdogExactThresholds)OBS|UT-APP-011|ibus_before|expected=0|actual=0|tolerance=0
+OBS|UT-APP-011|mpu_before|expected=0|actual=0|tolerance=0
+OBS|UT-APP-011|ibus_after|expected=1|actual=1|tolerance=0
+OBS|UT-APP-011|mpu_after|expected=1|actual=1|tolerance=0
+OBS|UT-APP-011|ibus_reset|expected=0|actual=0|tolerance=0
+OBS|UT-APP-011|mpu_reset|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Application, APP010_TimerInstanceAndPidFlag)OBS|UT-APP-010|other_timer|expected=0|actual=0|tolerance=0
+OBS|UT-APP-010|tim10_event|expected=1|actual=1|tolerance=0
+OBS|UT-APP-010|binary_event|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(Application, APP009_LevelTriggeredRearmAfterMpuRecovery)OBS|UT-APP-009|rearm_without_switch_edge|expected=0|actual=0|tolerance=0
+OBS|UT-APP-009|consumed|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Application, APP008_MpuLossOverridesIbus)OBS|UT-APP-008|mpu_lock|expected=1|actual=1|tolerance=0
+OBS|UT-APP-008|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-008|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-008|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-008|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(Application, APP007_FailsafeMinimum)OBS|UT-APP-007|lock_unchanged|expected=0|actual=0|tolerance=0
+OBS|UT-APP-007|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-007|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-007|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-007|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Application, APP006_IbusLossMinimumAndRecovery)OBS|UT-APP-006|no_lock|expected=0|actual=0|tolerance=0
+OBS|UT-APP-006|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-006|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-006|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-006|CCR4|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-006|CCR1|expected=18000|actual=18000|tolerance=0
+OBS|UT-APP-006|CCR2|expected=19000|actual=19000|tolerance=0
+OBS|UT-APP-006|CCR3|expected=20000|actual=20000|tolerance=0
+OBS|UT-APP-006|CCR4|expected=21000|actual=21000|tolerance=0
+ - 0 ms
+TEST(Application, APP005_ThrottleOutputBoundary)OBS|UT-APP-005|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-005|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-005|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-005|CCR4|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-005|CCR1|expected=18000|actual=18000|tolerance=0
+OBS|UT-APP-005|CCR2|expected=19000|actual=19000|tolerance=0
+OBS|UT-APP-005|CCR3|expected=20000|actual=20000|tolerance=0
+OBS|UT-APP-005|CCR4|expected=21000|actual=21000|tolerance=0
+ - 0 ms
+TEST(Application, APP004_DisarmHasPriority)OBS|UT-APP-004|disarmed|expected=1|actual=1|tolerance=0
+OBS|UT-APP-004|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-004|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-004|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-004|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(Application, APP003_RejectHighThrottleAndStaleArm)OBS|UT-APP-003|reject_high|expected=1|actual=1|tolerance=0
+OBS|UT-APP-003|fresh_consumed|expected=0|actual=0|tolerance=0
+OBS|UT-APP-003|reject_stale|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(Application, APP002_FreshArmAndConsume)OBS|UT-APP-002|armed|expected=0|actual=0|tolerance=0
+OBS|UT-APP-002|fresh_consumed|expected=0|actual=0|tolerance=0
+OBS|UT-APP-002|yaw_ref|expected=12|actual=12|tolerance=0
+OBS|UT-APP-002|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-002|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-002|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-002|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Application, APP001_LockedDefault)OBS|UT-APP-001|lock|expected=1|actual=1|tolerance=0
+OBS|UT-APP-001|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-001|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-001|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-001|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS011_LongDeterministicStream)OBS|UT-IBUS-011|last_channel|expected=1999|actual=1999|tolerance=0
+OBS|UT-IBUS-011|last_consumed|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS010_UartCallbackToParser)OBS|UT-IBUS-010|rearm_per_byte|expected=32|actual=32|tolerance=0
+OBS|UT-IBUS-010|frame_ready|expected=1|actual=1|tolerance=0
+OBS|UT-IBUS-010|ignore_other_uart|expected=33|actual=33|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS009_PreflightThrottleBoundary)OBS|UT-IBUS-009|1009|expected=1|actual=1|tolerance=0
+OBS|UT-IBUS-009|1010|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS008_InvalidFrameNotDecoded)OBS|UT-IBUS-008|reject|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-008|old_state|expected=777|actual=777|tolerance=0
+OBS|UT-IBUS-008|consumed|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS007_ReceivedConsumesValidFrame)OBS|UT-IBUS-007|received|expected=1|actual=1|tolerance=0
+OBS|UT-IBUS-007|flag_clear|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-007|decoded|expected=2000|actual=2000|tolerance=0
+OBS|UT-IBUS-007|no_second_consume|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS006_LatestMailboxAndPartialNext)OBS|UT-IBUS-006|notification_still_pending|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS005_NoiseAndBadSecondHeader)OBS|UT-IBUS-005|no_false_publish|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-005|resynced|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS004_PublishOnlyByte32)OBS|UT-IBUS-004|pending_before_last|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-004|mailbox_before_last|expected=85|actual=85|tolerance=0
+OBS|UT-IBUS-004|published|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS003_DecodeChannelsAndMask)OBS|UT-IBUS-003|roll|expected=1000|actual=1000|tolerance=0
+OBS|UT-IBUS-003|pitch|expected=1500|actual=1500|tolerance=0
+OBS|UT-IBUS-003|throttle|expected=2000|actual=2000|tolerance=0
+OBS|UT-IBUS-003|yaw|expected=1200|actual=1200|tolerance=0
+OBS|UT-IBUS-003|SwA|expected=2000|actual=2000|tolerance=0
+OBS|UT-IBUS-003|SwB_masked|expected=1000|actual=1000|tolerance=0
+OBS|UT-IBUS-003|flags|expected=10|actual=10|tolerance=0
+OBS|UT-IBUS-003|failsafe|expected=1|actual=1|tolerance=0
+OBS|UT-IBUS-003|no_failsafe|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS002_EveryByteCorruptionRejected)OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS001_KnownChecksum)OBS|UT-IBUS-001|literal_frame|expected=1|actual=1|tolerance=0
+ - 1 ms
+TEST(Integration, INT016_ActualMainMixerSaturation)OBS|IT-016|CCR1|expected=25000|actual=25000|tolerance=0
+OBS|IT-016|CCR2|expected=25000|actual=25000|tolerance=0
+OBS|IT-016|CCR3|expected=24720|actual=24720|tolerance=0
+OBS|IT-016|CCR4|expected=24920|actual=24920|tolerance=0
+ - 0 ms
+TEST(Integration, INT015_NoIbusFrameThenTimeout)OBS|IT-015|rc_loss|expected=1|actual=1|tolerance=0
+OBS|IT-015|no_motor_lock|expected=0|actual=0|tolerance=0
+OBS|IT-015|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|IT-015|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|IT-015|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|IT-015|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Integration, INT014_NoMpuCompletionThenTimeout)OBS|IT-014|mpu_loss|expected=1|actual=1|tolerance=0
+OBS|IT-014|no_completion|expected=0|actual=0|tolerance=0
+OBS|IT-014|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|IT-014|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|IT-014|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|IT-014|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(Integration, INT013_MpuSameZDoesNotResetWatchdog)OBS|IT-013|counter|expected=49|actual=49|tolerance=0
+OBS|IT-013|flag|expected=1|actual=1|tolerance=0
+OBS|IT-013|lock|expected=1|actual=1|tolerance=0
+OBS|IT-013|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|IT-013|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|IT-013|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|IT-013|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(Integration, INT012_MpuChangedZResetsWatchdog)OBS|IT-012|raw_z|expected=2048|actual=2048|tolerance=0
+OBS|IT-012|counter|expected=0|actual=0|tolerance=0
+OBS|IT-012|flag|expected=0|actual=0|tolerance=0
+OBS|IT-012|consumed|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Integration, INT011_InvalidFrameDoesNotResetBookkeeping)OBS|IT-011|old_throttle|expected=1000|actual=1000|tolerance=0
+OBS|IT-011|counter_not_reset|expected=12|actual=12|tolerance=0
+OBS|IT-011|no_fresh|expected=0|actual=0|tolerance=0
+ - 1 ms
+TEST(Integration, INT010_PreflightIntentionalSwbCalibration)OBS|IT-010|calibration_high|expected=25000|actual=25000|tolerance=0
+OBS|IT-010|calibration_low|expected=12500|actual=12500|tolerance=0
+OBS|IT-010|high_once|expected=1|actual=1|tolerance=0
+OBS|IT-010|low_once|expected=1|actual=1|tolerance=0
+OBS|IT-010|switch_released|expected=1000|actual=1000|tolerance=0
+OBS|IT-010|lock_unchanged|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(Integration, INT009_PreflightHelpersNoCalibration)OBS|IT-009|throttle|expected=1000|actual=1000|tolerance=0
+OBS|IT-009|disarm_switch|expected=1000|actual=1000|tolerance=0
+OBS|IT-009|motor_lock|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(Integration, INT008_ActualMainLowBatteryWarningOnly)OBS|IT-008|voltage|expected=12.267|actual=12.2670001984|tolerance=2e-06
+OBS|IT-008|still_armed|expected=0|actual=0|tolerance=0
+OBS|IT-008|buzzer|expected=50|actual=50|tolerance=0
+OBS|IT-008|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|IT-008|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|IT-008|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|IT-008|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Integration, INT007_MailboxReplacementAfterSnapshot)OBS|IT-007|decoded_snapshot_throttle|expected=1500|actual=1500|tolerance=0
+OBS|IT-007|decoded_snapshot_roll|expected=1600|actual=1600|tolerance=0
+OBS|IT-007|next_pending|expected=1|actual=1|tolerance=0
+OBS|IT-007|restore_calls|expected=2|actual=2|tolerance=0
+ - 0 ms
+TEST(Integration, INT006_ActualMainCombinedMixer)OBS|IT-006|CCR1|expected=18786|actual=18786|tolerance=0
+OBS|IT-006|CCR2|expected=18786|actual=18786|tolerance=0
+OBS|IT-006|CCR3|expected=18694|actual=18694|tolerance=0
+OBS|IT-006|CCR4|expected=18734|actual=18734|tolerance=0
+ - 0 ms
+TEST(Integration, INT005_ActualMainYawRateMixer)OBS|IT-005|Yaw_PID|expected=36|actual=36|tolerance=0.0001
+OBS|IT-005|CCR1|expected=18786|actual=18786|tolerance=0
+OBS|IT-005|CCR2|expected=18786|actual=18786|tolerance=0
+OBS|IT-005|CCR3|expected=18714|actual=18714|tolerance=0
+OBS|IT-005|CCR4|expected=18714|actual=18714|tolerance=0
+ - 0 ms
+TEST(Integration, INT004_ActualMainRollMixerMapping)OBS|IT-004|Roll_PID|expected=10|actual=10|tolerance=1e-05
+OBS|IT-004|CCR1|expected=18740|actual=18740|tolerance=0
+OBS|IT-004|CCR2|expected=18760|actual=18760|tolerance=0
+OBS|IT-004|CCR3|expected=18740|actual=18740|tolerance=0
+OBS|IT-004|CCR4|expected=18760|actual=18760|tolerance=0
+ - 1 ms
+TEST(Integration, INT003_ActualMainPitchMixerAndM1M4Swap)OBS|IT-003|Pitch_PID|expected=10|actual=10|tolerance=1e-05
+OBS|IT-003|CCR1|expected=18760|actual=18760|tolerance=0
+OBS|IT-003|CCR2|expected=18740|actual=18740|tolerance=0
+OBS|IT-003|CCR3|expected=18740|actual=18740|tolerance=0
+OBS|IT-003|CCR4|expected=18760|actual=18760|tolerance=0
+ - 0 ms
+TEST(Integration, INT002_ActualMainNeutralMixer)OBS|IT-002|bounded_main|expected=1|actual=1|tolerance=0
+OBS|IT-002|arm|expected=0|actual=0|tolerance=0
+OBS|IT-002|CCR1|expected=18750|actual=18750|tolerance=0
+OBS|IT-002|CCR2|expected=18750|actual=18750|tolerance=0
+OBS|IT-002|CCR3|expected=18750|actual=18750|tolerance=0
+OBS|IT-002|CCR4|expected=18750|actual=18750|tolerance=0
+OBS|IT-002|last_mixer|expected=18750|actual=18750|tolerance=0
+OBS|IT-002|irq_restored|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Integration, INT001_RawFilterCascade)OBS|IT-001|pitch_angle|expected=0.0195997333406|actual=0.0195997338742|tolerance=1e-06
+OBS|IT-001|outer|expected=-0.0391994666813|actual=-0.0391994677484|tolerance=2e-06
+OBS|IT-001|inner|expected=-10.039063416|actual=-10.0390634537|tolerance=2e-05
+ - 0 ms
+TEST(Battery, BAT004_ConversionToHysteresisSequence)OBS|UT-BAT-004|low_12_9485|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-004|hold_13_2211|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-004|recover_13_63|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Battery, BAT003_DmaBoundaryInterface)OBS|UT-BAT-003|length|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-003|calls|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(Battery, BAT002_HysteresisExactBoundaries)OBS|UT-BAT-002|normal_at_13|expected=0|actual=0|tolerance=0
+OBS|UT-BAT-002|below_13|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-002|hold_at_13|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-002|hold_at_13_5|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-002|recover_above|expected=0|actual=0|tolerance=0
+OBS|UT-BAT-002|hold_normal|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Battery, BAT001_ConversionRange)OBS|UT-BAT-001|zero|expected=0|actual=0|tolerance=0
+OBS|UT-BAT-001|1000|expected=13.63|actual=13.6300001144|tolerance=2e-06
+OBS|UT-BAT-001|4095|expected=55.81485|actual=55.8148498535|tolerance=1e-05
+ - 0 ms
+TEST(Motor, MOTOR005_ClampThenRegisterIntegration)OBS|UT-MOTOR-005|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-005|CCR2|expected=16000|actual=16000|tolerance=0
+OBS|UT-MOTOR-005|CCR3|expected=25000|actual=25000|tolerance=0
+OBS|UT-MOTOR-005|CCR4|expected=25000|actual=25000|tolerance=0
+ - 0 ms
+TEST(Motor, MOTOR004_LockAndMinimum)OBS|UT-MOTOR-004|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-MOTOR-004|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-MOTOR-004|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-MOTOR-004|CCR4|expected=12500|actual=12500|tolerance=0
+OBS|UT-MOTOR-004|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-004|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-004|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-004|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Motor, MOTOR003_FieldToCcr)OBS|UT-MOTOR-003|CCR1|expected=14000|actual=14000|tolerance=0
+OBS|UT-MOTOR-003|CCR2|expected=15000|actual=15000|tolerance=0
+OBS|UT-MOTOR-003|CCR3|expected=16000|actual=16000|tolerance=0
+OBS|UT-MOTOR-003|CCR4|expected=17000|actual=17000|tolerance=0
+ - 0 ms
+TEST(Motor, MOTOR002_UpperAndIndependentChannels)OBS|UT-MOTOR-002|m1|expected=25000|actual=25000|tolerance=0
+OBS|UT-MOTOR-002|m2|expected=25000|actual=25000|tolerance=0
+OBS|UT-MOTOR-002|m3|expected=17000|actual=17000|tolerance=0
+OBS|UT-MOTOR-002|m4|expected=19000|actual=19000|tolerance=0
+ - 0 ms
+TEST(Motor, MOTOR001_LowerAndExactBounds)OBS|UT-MOTOR-001|m1|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-001|m2|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-001|m3|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-001|m4|expected=25000|actual=25000|tolerance=0
+ - 0 ms
+TEST(MPU, MPU013_CalibrationMixedSamples)OBS|UT-MPU-013|mean_bias_x|expected=-0.017453|actual=-0.0174529999495|tolerance=1e-07
+OBS|UT-MPU-013|mean_bias_y|expected=-0.052359|actual=-0.0523589998484|tolerance=1e-07
+OBS|UT-MPU-013|mean_bias_z|expected=0|actual=0|tolerance=1e-07
+OBS|UT-MPU-013|requested_delay_ms|expected=12|actual=12|tolerance=0
+ - 0 ms
+TEST(MPU, MPU012_BlockingRegisterRetryBerrBranch)OBS|UT-MPU-012|reinit|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-012|BERR_clear_write|expected=65279|actual=65279|tolerance=0
+OBS|UT-MPU-012|no_gpio_recovery|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(MPU, MPU011_ExtiAndCompletionFilters)OBS|UT-MPU-011|other_pin|expected=0|actual=0|tolerance=0
+OBS|UT-MPU-011|correct_pin|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-011|other_i2c|expected=0|actual=0|tolerance=0
+OBS|UT-MPU-011|completion|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-011|busy_no_reset|expected=0|actual=0|tolerance=0
+OBS|UT-MPU-011|busy_no_gpio|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(MPU, MPU010_AsyncArgumentsAndAllStatuses)OBS|UT-MPU-010|status_passthrough|expected=0|actual=0|tolerance=0
+OBS|UT-MPU-010|status_passthrough|expected=2|actual=2|tolerance=0
+OBS|UT-MPU-010|status_passthrough|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-010|status_passthrough|expected=3|actual=3|tolerance=0
+OBS|UT-MPU-010|addr|expected=208|actual=208|tolerance=0
+OBS|UT-MPU-010|start_reg|expected=59|actual=59|tolerance=0
+OBS|UT-MPU-010|size|expected=14|actual=14|tolerance=0
+ - 0 ms
+TEST(MPU, MPU009_PreviousStateAndFixedStep)OBS|UT-MPU-009|roll_state|expected=9.799702423|actual=9.79970264435|tolerance=2e-05
+OBS|UT-MPU-009|pitch_state|expected=-19.599404846|actual=-19.5994052887|tolerance=2e-05
+OBS|UT-MPU-009|yaw_state|expected=30|actual=30|tolerance=0
+OBS|UT-MPU-009|yaw_1000|expected=114.59|actual=114.591400146|tolerance=0.002
+ - 0 ms
+TEST(MPU, MPU008_AccelTiltThirtyDegrees)OBS|UT-MPU-008|pitch|expected=0.599991836958|actual=0.599991261959|tolerance=2e-06
+OBS|UT-MPU-008|roll_zero|expected=0|actual=0|tolerance=1e-07
+OBS|UT-MPU-008|roll|expected=0.599991836958|actual=0.599991261959|tolerance=2e-06
+ - 0 ms
+TEST(MPU, MPU007_LevelAndGyroSigns)OBS|UT-MPU-007|roll|expected=-0.1122982|actual=-0.112298198044|tolerance=1e-06
+OBS|UT-MPU-007|pitch|expected=0.1122982|actual=0.112298198044|tolerance=1e-06
+OBS|UT-MPU-007|yaw|expected=0.11459|actual=0.114590004086|tolerance=1e-06
+ - 0 ms
+TEST(MPU, MPU006_CalibrationMeanAndZeroSampleRule)OBS|UT-MPU-006|reads|expected=4|actual=4|tolerance=0
+OBS|UT-MPU-006|delays|expected=4|actual=4|tolerance=0
+OBS|UT-MPU-006|bias_x|expected=-0.034906|actual=-0.0349059998989|tolerance=1e-07
+OBS|UT-MPU-006|bias_y|expected=0.069812|actual=0.0698119997978|tolerance=1e-07
+OBS|UT-MPU-006|bias_z|expected=-0.104718|actual=-0.104717999697|tolerance=1e-07
+OBS|UT-MPU-006|zero_becomes_one|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(MPU, MPU005_BiasAppliedInRadians)OBS|UT-MPU-005|gx|expected=-0.1|actual=-0.10000000149|tolerance=1e-07
+OBS|UT-MPU-005|gy|expected=0.2|actual=0.20000000298|tolerance=1e-07
+OBS|UT-MPU-005|gz|expected=-0.3|actual=-0.300000011921|tolerance=1e-07
+ - 0 ms
+TEST(MPU, MPU004_SignedExtremesAndTemperatureIgnored)OBS|UT-MPU-004|min_accel|expected=-16|actual=-16|tolerance=1e-06
+OBS|UT-MPU-004|max_accel|expected=15.9995117188|actual=15.9995117188|tolerance=1e-06
+OBS|UT-MPU-004|min_gyro|expected=-8.73144258463|actual=-8.73144245148|tolerance=2e-06
+OBS|UT-MPU-004|max_gyro|expected=8.73117612215|actual=8.73117637634|tolerance=2e-06
+OBS|UT-MPU-004|temp_ignored|expected=-8.73144245148|actual=-8.73144245148|tolerance=0
+ - 0 ms
+TEST(MPU, MPU003_ScaleAndBigEndian)OBS|UT-MPU-003|ax_g|expected=1|actual=1|tolerance=1e-06
+OBS|UT-MPU-003|ay_g|expected=-0.5|actual=-0.5|tolerance=1e-06
+OBS|UT-MPU-003|az_g|expected=-1|actual=-1|tolerance=1e-06
+OBS|UT-MPU-003|gx_rad|expected=1.74532925199|actual=1.74532926083|tolerance=1e-06
+OBS|UT-MPU-003|gy_rad|expected=-1.74532925199|actual=-1.74532926083|tolerance=1e-06
+OBS|UT-MPU-003|gz_rad|expected=0.0349065850399|actual=0.0349065847695|tolerance=1e-07
+ - 0 ms
+TEST(MPU, MPU002_StartDrdyPreservesOtherBits)OBS|UT-MPU-002|INT_PIN_CFG|expected=176|actual=176|tolerance=0
+OBS|UT-MPU-002|INT_ENABLE|expected=17|actual=17|tolerance=0
+ - 0 ms
+TEST(MPU, MPU001_InitConfiguration)OBS|UT-MPU-001|PWR|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-001|divider|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-001|DLPF|expected=2|actual=2|tolerance=0
+OBS|UT-MPU-001|FS_GYRO|expected=8|actual=8|tolerance=0
+OBS|UT-MPU-001|FS_ACCEL|expected=24|actual=24|tolerance=0
+OBS|UT-MPU-001|DRDY_not_enabled|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(PID_Math, PID014_RepeatedPOnly)OBS|UT-PID-014|outer|expected=6|actual=6|tolerance=1e-05
+OBS|UT-PID-014|inner|expected=6|actual=6|tolerance=1e-05
+OBS|UT-PID-014|outer_sum|expected=6|actual=6.00003385544|tolerance=0.001
+OBS|UT-PID-014|inner_sum|expected=12|actual=12.0000677109|tolerance=0.001
+ - 0 ms
+TEST(PID_Math, PID013_YawHeadingBoundaryAndNoIntegral)OBS|UT-PID-013|plus180|expected=180|actual=180|tolerance=1e-06
+OBS|UT-PID-013|minus180|expected=-180|actual=-180|tolerance=1e-06
+OBS|UT-PID-013|heading_PD|expected=0|actual=0|tolerance=1e-05
+OBS|UT-PID-013|sum_unchanged|expected=7|actual=7|tolerance=0
+ - 0 ms
+TEST(PID_Math, PID012_YawHeadingWrap)OBS|UT-PID-012|wrap_positive|expected=4|actual=4|tolerance=1e-06
+OBS|UT-PID-012|wrap_negative|expected=-4|actual=-4|tolerance=1e-06
+ - 0 ms
+TEST(PID_Math, PID011_YawRateDerivative)OBS|UT-PID-011|step|expected=-260|actual=-260|tolerance=0.0002
+OBS|UT-PID-011|constant|expected=-135|actual=-135|tolerance=0.0002
+ - 0 ms
+TEST(PID_Math, PID010_YawRateFeedbackAndIntegralClamp)OBS|UT-PID-010|feedback|expected=-90|actual=-90|tolerance=0.0001
+OBS|UT-PID-010|positive_clamp|expected=500|actual=500|tolerance=1e-06
+OBS|UT-PID-010|negative_clamp|expected=-500|actual=-500|tolerance=1e-06
+ - 0 ms
+TEST(PID_Math, PID009_YawRateEndpoints)OBS|UT-PID-009|low|expected=-270|actual=-270|tolerance=0.0001
+OBS|UT-PID-009|high|expected=270|actual=270|tolerance=0.0001
+ - 0 ms
+TEST(PID_Math, PID008_ResetOnlyIntegral)OBS|UT-PID-008|sum|expected=0|actual=0|tolerance=0
+OBS|UT-PID-008|prev|expected=3|actual=3|tolerance=0
+OBS|UT-PID-008|IIR|expected=4|actual=4|tolerance=0
+OBS|UT-PID-008|out|expected=5|actual=5|tolerance=0
+OBS|UT-PID-008|gain|expected=2|actual=2|tolerance=0
+ - 0 ms
+TEST(PID_Math, PID007_DerivativeStepAndDecay)OBS|UT-PID-007|outer_IIR|expected=7|actual=7|tolerance=1e-05
+OBS|UT-PID-007|inner_first|expected=-274|actual=-274|tolerance=0.0002
+OBS|UT-PID-007|outer_second|expected=-18.2|actual=-18.2000007629|tolerance=0.0001
+OBS|UT-PID-007|inner_second|expected=-153.2|actual=-153.199996948|tolerance=0.0002
+ - 0 ms
+TEST(PID_Math, PID006_NegativeIntegralClamp)OBS|UT-PID-006|outer_sum|expected=-500|actual=-500|tolerance=1e-06
+OBS|UT-PID-006|inner_sum|expected=-500|actual=-500|tolerance=1e-06
+ - 0 ms
+TEST(PID_Math, PID005_PositiveIntegralClamp)OBS|UT-PID-005|outer_sum|expected=500|actual=500|tolerance=1e-06
+OBS|UT-PID-005|inner_sum|expected=500|actual=500|tolerance=1e-06
+ - 0 ms
+TEST(PID_Math, PID004_IntegralTwoCalls)OBS|UT-PID-004|outer_first|expected=0.012|actual=0.0120000001043|tolerance=1e-07
+OBS|UT-PID-004|inner_first|expected=7.2e-05|actual=7.20000025467e-05|tolerance=1e-08
+OBS|UT-PID-004|outer_second|expected=0.024|actual=0.0240000002086|tolerance=1e-07
+OBS|UT-PID-004|inner_second|expected=0.000216|actual=0.000216000014916|tolerance=1e-08
+ - 0 ms
+TEST(PID_Math, PID003_RcEndpoints)OBS|UT-PID-003|low_inner|expected=-50|actual=-50|tolerance=1e-05
+OBS|UT-PID-003|low_sum|expected=-0.05|actual=-0.0500000007451|tolerance=1e-06
+OBS|UT-PID-003|high_inner|expected=50|actual=50|tolerance=1e-05
+OBS|UT-PID-003|high_sum|expected=0.1|actual=0.10000000149|tolerance=1e-06
+ - 0 ms
+TEST(PID_Math, PID002_Neutral)OBS|UT-PID-002|outer|expected=0|actual=0|tolerance=1e-06
+OBS|UT-PID-002|inner|expected=0|actual=0|tolerance=1e-06
+ - 0 ms
+
+OK (77 tests, 77 ran, 501 checks, 0 ignored, 0 filtered out, 3 ms)
+
+Test run 2 of 2
+TEST(PID_PitchRoll, POnly_Cascade) - 0 ms
+TEST(Application, APP014_ValidIbusToArmAndFailsafe)OBS|UT-APP-014|decoded_arm|expected=0|actual=0|tolerance=0
+OBS|UT-APP-014|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-014|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-014|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-014|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Application, APP013_EscCalibrationRegisterSequence)OBS|UT-APP-013|lock_unchanged|expected=1|actual=1|tolerance=0
+OBS|UT-APP-013|delay_count|expected=2|actual=2|tolerance=0
+OBS|UT-APP-013|high_ms|expected=7000|actual=7000|tolerance=0
+OBS|UT-APP-013|low_ms|expected=8000|actual=8000|tolerance=0
+OBS|UT-APP-013|high_CCR|expected=25000|actual=25000|tolerance=0
+OBS|UT-APP-013|low_CCR|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|high_CCR|expected=25000|actual=25000|tolerance=0
+OBS|UT-APP-013|low_CCR|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|high_CCR|expected=25000|actual=25000|tolerance=0
+OBS|UT-APP-013|low_CCR|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|high_CCR|expected=25000|actual=25000|tolerance=0
+OBS|UT-APP-013|low_CCR|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-013|CCR4|expected=12500|actual=12500|tolerance=0
+ - 1 ms
+TEST(Application, APP012_WatchdogOnlySetsFlagThenMainActs)OBS|UT-APP-012|CCR1|expected=18000|actual=18000|tolerance=0
+OBS|UT-APP-012|CCR2|expected=19000|actual=19000|tolerance=0
+OBS|UT-APP-012|CCR3|expected=20000|actual=20000|tolerance=0
+OBS|UT-APP-012|CCR4|expected=21000|actual=21000|tolerance=0
+OBS|UT-APP-012|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-012|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-012|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-012|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(Application, APP011_WatchdogExactThresholds)OBS|UT-APP-011|ibus_before|expected=0|actual=0|tolerance=0
+OBS|UT-APP-011|mpu_before|expected=0|actual=0|tolerance=0
+OBS|UT-APP-011|ibus_after|expected=1|actual=1|tolerance=0
+OBS|UT-APP-011|mpu_after|expected=1|actual=1|tolerance=0
+OBS|UT-APP-011|ibus_reset|expected=0|actual=0|tolerance=0
+OBS|UT-APP-011|mpu_reset|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Application, APP010_TimerInstanceAndPidFlag)OBS|UT-APP-010|other_timer|expected=0|actual=0|tolerance=0
+OBS|UT-APP-010|tim10_event|expected=1|actual=1|tolerance=0
+OBS|UT-APP-010|binary_event|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(Application, APP009_LevelTriggeredRearmAfterMpuRecovery)OBS|UT-APP-009|rearm_without_switch_edge|expected=0|actual=0|tolerance=0
+OBS|UT-APP-009|consumed|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Application, APP008_MpuLossOverridesIbus)OBS|UT-APP-008|mpu_lock|expected=1|actual=1|tolerance=0
+OBS|UT-APP-008|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-008|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-008|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-008|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(Application, APP007_FailsafeMinimum)OBS|UT-APP-007|lock_unchanged|expected=0|actual=0|tolerance=0
+OBS|UT-APP-007|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-007|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-007|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-007|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Application, APP006_IbusLossMinimumAndRecovery)OBS|UT-APP-006|no_lock|expected=0|actual=0|tolerance=0
+OBS|UT-APP-006|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-006|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-006|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-006|CCR4|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-006|CCR1|expected=18000|actual=18000|tolerance=0
+OBS|UT-APP-006|CCR2|expected=19000|actual=19000|tolerance=0
+OBS|UT-APP-006|CCR3|expected=20000|actual=20000|tolerance=0
+OBS|UT-APP-006|CCR4|expected=21000|actual=21000|tolerance=0
+ - 0 ms
+TEST(Application, APP005_ThrottleOutputBoundary)OBS|UT-APP-005|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-005|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-005|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-005|CCR4|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-005|CCR1|expected=18000|actual=18000|tolerance=0
+OBS|UT-APP-005|CCR2|expected=19000|actual=19000|tolerance=0
+OBS|UT-APP-005|CCR3|expected=20000|actual=20000|tolerance=0
+OBS|UT-APP-005|CCR4|expected=21000|actual=21000|tolerance=0
+ - 0 ms
+TEST(Application, APP004_DisarmHasPriority)OBS|UT-APP-004|disarmed|expected=1|actual=1|tolerance=0
+OBS|UT-APP-004|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-004|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-004|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-004|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(Application, APP003_RejectHighThrottleAndStaleArm)OBS|UT-APP-003|reject_high|expected=1|actual=1|tolerance=0
+OBS|UT-APP-003|fresh_consumed|expected=0|actual=0|tolerance=0
+OBS|UT-APP-003|reject_stale|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(Application, APP002_FreshArmAndConsume)OBS|UT-APP-002|armed|expected=0|actual=0|tolerance=0
+OBS|UT-APP-002|fresh_consumed|expected=0|actual=0|tolerance=0
+OBS|UT-APP-002|yaw_ref|expected=12|actual=12|tolerance=0
+OBS|UT-APP-002|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-002|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-002|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-APP-002|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Application, APP001_LockedDefault)OBS|UT-APP-001|lock|expected=1|actual=1|tolerance=0
+OBS|UT-APP-001|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-001|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-001|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-APP-001|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS011_LongDeterministicStream)OBS|UT-IBUS-011|last_channel|expected=1999|actual=1999|tolerance=0
+OBS|UT-IBUS-011|last_consumed|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS010_UartCallbackToParser)OBS|UT-IBUS-010|rearm_per_byte|expected=32|actual=32|tolerance=0
+OBS|UT-IBUS-010|frame_ready|expected=1|actual=1|tolerance=0
+OBS|UT-IBUS-010|ignore_other_uart|expected=33|actual=33|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS009_PreflightThrottleBoundary)OBS|UT-IBUS-009|1009|expected=1|actual=1|tolerance=0
+OBS|UT-IBUS-009|1010|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS008_InvalidFrameNotDecoded)OBS|UT-IBUS-008|reject|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-008|old_state|expected=777|actual=777|tolerance=0
+OBS|UT-IBUS-008|consumed|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS007_ReceivedConsumesValidFrame)OBS|UT-IBUS-007|received|expected=1|actual=1|tolerance=0
+OBS|UT-IBUS-007|flag_clear|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-007|decoded|expected=2000|actual=2000|tolerance=0
+OBS|UT-IBUS-007|no_second_consume|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS006_LatestMailboxAndPartialNext)OBS|UT-IBUS-006|notification_still_pending|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS005_NoiseAndBadSecondHeader)OBS|UT-IBUS-005|no_false_publish|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-005|resynced|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS004_PublishOnlyByte32)OBS|UT-IBUS-004|pending_before_last|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-004|mailbox_before_last|expected=85|actual=85|tolerance=0
+OBS|UT-IBUS-004|published|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS003_DecodeChannelsAndMask)OBS|UT-IBUS-003|roll|expected=1000|actual=1000|tolerance=0
+OBS|UT-IBUS-003|pitch|expected=1500|actual=1500|tolerance=0
+OBS|UT-IBUS-003|throttle|expected=2000|actual=2000|tolerance=0
+OBS|UT-IBUS-003|yaw|expected=1200|actual=1200|tolerance=0
+OBS|UT-IBUS-003|SwA|expected=2000|actual=2000|tolerance=0
+OBS|UT-IBUS-003|SwB_masked|expected=1000|actual=1000|tolerance=0
+OBS|UT-IBUS-003|flags|expected=10|actual=10|tolerance=0
+OBS|UT-IBUS-003|failsafe|expected=1|actual=1|tolerance=0
+OBS|UT-IBUS-003|no_failsafe|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS002_EveryByteCorruptionRejected)OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+OBS|UT-IBUS-002|corrupted_byte|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(IBUS, IBUS001_KnownChecksum)OBS|UT-IBUS-001|literal_frame|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(Integration, INT016_ActualMainMixerSaturation)OBS|IT-016|CCR1|expected=25000|actual=25000|tolerance=0
+OBS|IT-016|CCR2|expected=25000|actual=25000|tolerance=0
+OBS|IT-016|CCR3|expected=24720|actual=24720|tolerance=0
+OBS|IT-016|CCR4|expected=24920|actual=24920|tolerance=0
+ - 0 ms
+TEST(Integration, INT015_NoIbusFrameThenTimeout)OBS|IT-015|rc_loss|expected=1|actual=1|tolerance=0
+OBS|IT-015|no_motor_lock|expected=0|actual=0|tolerance=0
+OBS|IT-015|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|IT-015|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|IT-015|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|IT-015|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Integration, INT014_NoMpuCompletionThenTimeout)OBS|IT-014|mpu_loss|expected=1|actual=1|tolerance=0
+OBS|IT-014|no_completion|expected=0|actual=0|tolerance=0
+OBS|IT-014|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|IT-014|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|IT-014|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|IT-014|CCR4|expected=12500|actual=12500|tolerance=0
+ - 0 ms
+TEST(Integration, INT013_MpuSameZDoesNotResetWatchdog)OBS|IT-013|counter|expected=49|actual=49|tolerance=0
+OBS|IT-013|flag|expected=1|actual=1|tolerance=0
+OBS|IT-013|lock|expected=1|actual=1|tolerance=0
+OBS|IT-013|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|IT-013|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|IT-013|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|IT-013|CCR4|expected=12500|actual=12500|tolerance=0
+ - 1 ms
+TEST(Integration, INT012_MpuChangedZResetsWatchdog)OBS|IT-012|raw_z|expected=2048|actual=2048|tolerance=0
+OBS|IT-012|counter|expected=0|actual=0|tolerance=0
+OBS|IT-012|flag|expected=0|actual=0|tolerance=0
+OBS|IT-012|consumed|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Integration, INT011_InvalidFrameDoesNotResetBookkeeping)OBS|IT-011|old_throttle|expected=1000|actual=1000|tolerance=0
+OBS|IT-011|counter_not_reset|expected=12|actual=12|tolerance=0
+OBS|IT-011|no_fresh|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Integration, INT010_PreflightIntentionalSwbCalibration)OBS|IT-010|calibration_high|expected=25000|actual=25000|tolerance=0
+OBS|IT-010|calibration_low|expected=12500|actual=12500|tolerance=0
+OBS|IT-010|high_once|expected=1|actual=1|tolerance=0
+OBS|IT-010|low_once|expected=1|actual=1|tolerance=0
+OBS|IT-010|switch_released|expected=1000|actual=1000|tolerance=0
+OBS|IT-010|lock_unchanged|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(Integration, INT009_PreflightHelpersNoCalibration)OBS|IT-009|throttle|expected=1000|actual=1000|tolerance=0
+OBS|IT-009|disarm_switch|expected=1000|actual=1000|tolerance=0
+OBS|IT-009|motor_lock|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(Integration, INT008_ActualMainLowBatteryWarningOnly)OBS|IT-008|voltage|expected=12.267|actual=12.2670001984|tolerance=2e-06
+OBS|IT-008|still_armed|expected=0|actual=0|tolerance=0
+OBS|IT-008|buzzer|expected=50|actual=50|tolerance=0
+OBS|IT-008|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|IT-008|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|IT-008|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|IT-008|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Integration, INT007_MailboxReplacementAfterSnapshot)OBS|IT-007|decoded_snapshot_throttle|expected=1500|actual=1500|tolerance=0
+OBS|IT-007|decoded_snapshot_roll|expected=1600|actual=1600|tolerance=0
+OBS|IT-007|next_pending|expected=1|actual=1|tolerance=0
+OBS|IT-007|restore_calls|expected=2|actual=2|tolerance=0
+ - 0 ms
+TEST(Integration, INT006_ActualMainCombinedMixer)OBS|IT-006|CCR1|expected=18786|actual=18786|tolerance=0
+OBS|IT-006|CCR2|expected=18786|actual=18786|tolerance=0
+OBS|IT-006|CCR3|expected=18694|actual=18694|tolerance=0
+OBS|IT-006|CCR4|expected=18734|actual=18734|tolerance=0
+ - 0 ms
+TEST(Integration, INT005_ActualMainYawRateMixer)OBS|IT-005|Yaw_PID|expected=36|actual=36|tolerance=0.0001
+OBS|IT-005|CCR1|expected=18786|actual=18786|tolerance=0
+OBS|IT-005|CCR2|expected=18786|actual=18786|tolerance=0
+OBS|IT-005|CCR3|expected=18714|actual=18714|tolerance=0
+OBS|IT-005|CCR4|expected=18714|actual=18714|tolerance=0
+ - 0 ms
+TEST(Integration, INT004_ActualMainRollMixerMapping)OBS|IT-004|Roll_PID|expected=10|actual=10|tolerance=1e-05
+OBS|IT-004|CCR1|expected=18740|actual=18740|tolerance=0
+OBS|IT-004|CCR2|expected=18760|actual=18760|tolerance=0
+OBS|IT-004|CCR3|expected=18740|actual=18740|tolerance=0
+OBS|IT-004|CCR4|expected=18760|actual=18760|tolerance=0
+ - 0 ms
+TEST(Integration, INT003_ActualMainPitchMixerAndM1M4Swap)OBS|IT-003|Pitch_PID|expected=10|actual=10|tolerance=1e-05
+OBS|IT-003|CCR1|expected=18760|actual=18760|tolerance=0
+OBS|IT-003|CCR2|expected=18740|actual=18740|tolerance=0
+OBS|IT-003|CCR3|expected=18740|actual=18740|tolerance=0
+OBS|IT-003|CCR4|expected=18760|actual=18760|tolerance=0
+ - 0 ms
+TEST(Integration, INT002_ActualMainNeutralMixer)OBS|IT-002|bounded_main|expected=1|actual=1|tolerance=0
+OBS|IT-002|arm|expected=0|actual=0|tolerance=0
+OBS|IT-002|CCR1|expected=18750|actual=18750|tolerance=0
+OBS|IT-002|CCR2|expected=18750|actual=18750|tolerance=0
+OBS|IT-002|CCR3|expected=18750|actual=18750|tolerance=0
+OBS|IT-002|CCR4|expected=18750|actual=18750|tolerance=0
+OBS|IT-002|last_mixer|expected=18750|actual=18750|tolerance=0
+OBS|IT-002|irq_restored|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Integration, INT001_RawFilterCascade)OBS|IT-001|pitch_angle|expected=0.0195997333406|actual=0.0195997338742|tolerance=1e-06
+OBS|IT-001|outer|expected=-0.0391994666813|actual=-0.0391994677484|tolerance=2e-06
+OBS|IT-001|inner|expected=-10.039063416|actual=-10.0390634537|tolerance=2e-05
+ - 1 ms
+TEST(Battery, BAT004_ConversionToHysteresisSequence)OBS|UT-BAT-004|low_12_9485|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-004|hold_13_2211|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-004|recover_13_63|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Battery, BAT003_DmaBoundaryInterface)OBS|UT-BAT-003|length|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-003|calls|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(Battery, BAT002_HysteresisExactBoundaries)OBS|UT-BAT-002|normal_at_13|expected=0|actual=0|tolerance=0
+OBS|UT-BAT-002|below_13|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-002|hold_at_13|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-002|hold_at_13_5|expected=1|actual=1|tolerance=0
+OBS|UT-BAT-002|recover_above|expected=0|actual=0|tolerance=0
+OBS|UT-BAT-002|hold_normal|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(Battery, BAT001_ConversionRange)OBS|UT-BAT-001|zero|expected=0|actual=0|tolerance=0
+OBS|UT-BAT-001|1000|expected=13.63|actual=13.6300001144|tolerance=2e-06
+OBS|UT-BAT-001|4095|expected=55.81485|actual=55.8148498535|tolerance=1e-05
+ - 0 ms
+TEST(Motor, MOTOR005_ClampThenRegisterIntegration)OBS|UT-MOTOR-005|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-005|CCR2|expected=16000|actual=16000|tolerance=0
+OBS|UT-MOTOR-005|CCR3|expected=25000|actual=25000|tolerance=0
+OBS|UT-MOTOR-005|CCR4|expected=25000|actual=25000|tolerance=0
+ - 0 ms
+TEST(Motor, MOTOR004_LockAndMinimum)OBS|UT-MOTOR-004|CCR1|expected=12500|actual=12500|tolerance=0
+OBS|UT-MOTOR-004|CCR2|expected=12500|actual=12500|tolerance=0
+OBS|UT-MOTOR-004|CCR3|expected=12500|actual=12500|tolerance=0
+OBS|UT-MOTOR-004|CCR4|expected=12500|actual=12500|tolerance=0
+OBS|UT-MOTOR-004|CCR1|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-004|CCR2|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-004|CCR3|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-004|CCR4|expected=13000|actual=13000|tolerance=0
+ - 0 ms
+TEST(Motor, MOTOR003_FieldToCcr)OBS|UT-MOTOR-003|CCR1|expected=14000|actual=14000|tolerance=0
+OBS|UT-MOTOR-003|CCR2|expected=15000|actual=15000|tolerance=0
+OBS|UT-MOTOR-003|CCR3|expected=16000|actual=16000|tolerance=0
+OBS|UT-MOTOR-003|CCR4|expected=17000|actual=17000|tolerance=0
+ - 0 ms
+TEST(Motor, MOTOR002_UpperAndIndependentChannels)OBS|UT-MOTOR-002|m1|expected=25000|actual=25000|tolerance=0
+OBS|UT-MOTOR-002|m2|expected=25000|actual=25000|tolerance=0
+OBS|UT-MOTOR-002|m3|expected=17000|actual=17000|tolerance=0
+OBS|UT-MOTOR-002|m4|expected=19000|actual=19000|tolerance=0
+ - 0 ms
+TEST(Motor, MOTOR001_LowerAndExactBounds)OBS|UT-MOTOR-001|m1|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-001|m2|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-001|m3|expected=13000|actual=13000|tolerance=0
+OBS|UT-MOTOR-001|m4|expected=25000|actual=25000|tolerance=0
+ - 0 ms
+TEST(MPU, MPU013_CalibrationMixedSamples)OBS|UT-MPU-013|mean_bias_x|expected=-0.017453|actual=-0.0174529999495|tolerance=1e-07
+OBS|UT-MPU-013|mean_bias_y|expected=-0.052359|actual=-0.0523589998484|tolerance=1e-07
+OBS|UT-MPU-013|mean_bias_z|expected=0|actual=0|tolerance=1e-07
+OBS|UT-MPU-013|requested_delay_ms|expected=12|actual=12|tolerance=0
+ - 0 ms
+TEST(MPU, MPU012_BlockingRegisterRetryBerrBranch)OBS|UT-MPU-012|reinit|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-012|BERR_clear_write|expected=65279|actual=65279|tolerance=0
+OBS|UT-MPU-012|no_gpio_recovery|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(MPU, MPU011_ExtiAndCompletionFilters)OBS|UT-MPU-011|other_pin|expected=0|actual=0|tolerance=0
+OBS|UT-MPU-011|correct_pin|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-011|other_i2c|expected=0|actual=0|tolerance=0
+OBS|UT-MPU-011|completion|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-011|busy_no_reset|expected=0|actual=0|tolerance=0
+OBS|UT-MPU-011|busy_no_gpio|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(MPU, MPU010_AsyncArgumentsAndAllStatuses)OBS|UT-MPU-010|status_passthrough|expected=0|actual=0|tolerance=0
+OBS|UT-MPU-010|status_passthrough|expected=2|actual=2|tolerance=0
+OBS|UT-MPU-010|status_passthrough|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-010|status_passthrough|expected=3|actual=3|tolerance=0
+OBS|UT-MPU-010|addr|expected=208|actual=208|tolerance=0
+OBS|UT-MPU-010|start_reg|expected=59|actual=59|tolerance=0
+OBS|UT-MPU-010|size|expected=14|actual=14|tolerance=0
+ - 0 ms
+TEST(MPU, MPU009_PreviousStateAndFixedStep)OBS|UT-MPU-009|roll_state|expected=9.799702423|actual=9.79970264435|tolerance=2e-05
+OBS|UT-MPU-009|pitch_state|expected=-19.599404846|actual=-19.5994052887|tolerance=2e-05
+OBS|UT-MPU-009|yaw_state|expected=30|actual=30|tolerance=0
+OBS|UT-MPU-009|yaw_1000|expected=114.59|actual=114.591400146|tolerance=0.002
+ - 0 ms
+TEST(MPU, MPU008_AccelTiltThirtyDegrees)OBS|UT-MPU-008|pitch|expected=0.599991836958|actual=0.599991261959|tolerance=2e-06
+OBS|UT-MPU-008|roll_zero|expected=0|actual=0|tolerance=1e-07
+OBS|UT-MPU-008|roll|expected=0.599991836958|actual=0.599991261959|tolerance=2e-06
+ - 0 ms
+TEST(MPU, MPU007_LevelAndGyroSigns)OBS|UT-MPU-007|roll|expected=-0.1122982|actual=-0.112298198044|tolerance=1e-06
+OBS|UT-MPU-007|pitch|expected=0.1122982|actual=0.112298198044|tolerance=1e-06
+OBS|UT-MPU-007|yaw|expected=0.11459|actual=0.114590004086|tolerance=1e-06
+ - 0 ms
+TEST(MPU, MPU006_CalibrationMeanAndZeroSampleRule)OBS|UT-MPU-006|reads|expected=4|actual=4|tolerance=0
+OBS|UT-MPU-006|delays|expected=4|actual=4|tolerance=0
+OBS|UT-MPU-006|bias_x|expected=-0.034906|actual=-0.0349059998989|tolerance=1e-07
+OBS|UT-MPU-006|bias_y|expected=0.069812|actual=0.0698119997978|tolerance=1e-07
+OBS|UT-MPU-006|bias_z|expected=-0.104718|actual=-0.104717999697|tolerance=1e-07
+OBS|UT-MPU-006|zero_becomes_one|expected=1|actual=1|tolerance=0
+ - 0 ms
+TEST(MPU, MPU005_BiasAppliedInRadians)OBS|UT-MPU-005|gx|expected=-0.1|actual=-0.10000000149|tolerance=1e-07
+OBS|UT-MPU-005|gy|expected=0.2|actual=0.20000000298|tolerance=1e-07
+OBS|UT-MPU-005|gz|expected=-0.3|actual=-0.300000011921|tolerance=1e-07
+ - 0 ms
+TEST(MPU, MPU004_SignedExtremesAndTemperatureIgnored)OBS|UT-MPU-004|min_accel|expected=-16|actual=-16|tolerance=1e-06
+OBS|UT-MPU-004|max_accel|expected=15.9995117188|actual=15.9995117188|tolerance=1e-06
+OBS|UT-MPU-004|min_gyro|expected=-8.73144258463|actual=-8.73144245148|tolerance=2e-06
+OBS|UT-MPU-004|max_gyro|expected=8.73117612215|actual=8.73117637634|tolerance=2e-06
+OBS|UT-MPU-004|temp_ignored|expected=-8.73144245148|actual=-8.73144245148|tolerance=0
+ - 0 ms
+TEST(MPU, MPU003_ScaleAndBigEndian)OBS|UT-MPU-003|ax_g|expected=1|actual=1|tolerance=1e-06
+OBS|UT-MPU-003|ay_g|expected=-0.5|actual=-0.5|tolerance=1e-06
+OBS|UT-MPU-003|az_g|expected=-1|actual=-1|tolerance=1e-06
+OBS|UT-MPU-003|gx_rad|expected=1.74532925199|actual=1.74532926083|tolerance=1e-06
+OBS|UT-MPU-003|gy_rad|expected=-1.74532925199|actual=-1.74532926083|tolerance=1e-06
+OBS|UT-MPU-003|gz_rad|expected=0.0349065850399|actual=0.0349065847695|tolerance=1e-07
+ - 0 ms
+TEST(MPU, MPU002_StartDrdyPreservesOtherBits)OBS|UT-MPU-002|INT_PIN_CFG|expected=176|actual=176|tolerance=0
+OBS|UT-MPU-002|INT_ENABLE|expected=17|actual=17|tolerance=0
+ - 0 ms
+TEST(MPU, MPU001_InitConfiguration)OBS|UT-MPU-001|PWR|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-001|divider|expected=1|actual=1|tolerance=0
+OBS|UT-MPU-001|DLPF|expected=2|actual=2|tolerance=0
+OBS|UT-MPU-001|FS_GYRO|expected=8|actual=8|tolerance=0
+OBS|UT-MPU-001|FS_ACCEL|expected=24|actual=24|tolerance=0
+OBS|UT-MPU-001|DRDY_not_enabled|expected=0|actual=0|tolerance=0
+ - 0 ms
+TEST(PID_Math, PID014_RepeatedPOnly)OBS|UT-PID-014|outer|expected=6|actual=6|tolerance=1e-05
+OBS|UT-PID-014|inner|expected=6|actual=6|tolerance=1e-05
+OBS|UT-PID-014|outer_sum|expected=6|actual=6.00003385544|tolerance=0.001
+OBS|UT-PID-014|inner_sum|expected=12|actual=12.0000677109|tolerance=0.001
+ - 0 ms
+TEST(PID_Math, PID013_YawHeadingBoundaryAndNoIntegral)OBS|UT-PID-013|plus180|expected=180|actual=180|tolerance=1e-06
+OBS|UT-PID-013|minus180|expected=-180|actual=-180|tolerance=1e-06
+OBS|UT-PID-013|heading_PD|expected=0|actual=0|tolerance=1e-05
+OBS|UT-PID-013|sum_unchanged|expected=7|actual=7|tolerance=0
+ - 0 ms
+TEST(PID_Math, PID012_YawHeadingWrap)OBS|UT-PID-012|wrap_positive|expected=4|actual=4|tolerance=1e-06
+OBS|UT-PID-012|wrap_negative|expected=-4|actual=-4|tolerance=1e-06
+ - 0 ms
+TEST(PID_Math, PID011_YawRateDerivative)OBS|UT-PID-011|step|expected=-260|actual=-260|tolerance=0.0002
+OBS|UT-PID-011|constant|expected=-135|actual=-135|tolerance=0.0002
+ - 0 ms
+TEST(PID_Math, PID010_YawRateFeedbackAndIntegralClamp)OBS|UT-PID-010|feedback|expected=-90|actual=-90|tolerance=0.0001
+OBS|UT-PID-010|positive_clamp|expected=500|actual=500|tolerance=1e-06
+OBS|UT-PID-010|negative_clamp|expected=-500|actual=-500|tolerance=1e-06
+ - 0 ms
+TEST(PID_Math, PID009_YawRateEndpoints)OBS|UT-PID-009|low|expected=-270|actual=-270|tolerance=0.0001
+OBS|UT-PID-009|high|expected=270|actual=270|tolerance=0.0001
+ - 0 ms
+TEST(PID_Math, PID008_ResetOnlyIntegral)OBS|UT-PID-008|sum|expected=0|actual=0|tolerance=0
+OBS|UT-PID-008|prev|expected=3|actual=3|tolerance=0
+OBS|UT-PID-008|IIR|expected=4|actual=4|tolerance=0
+OBS|UT-PID-008|out|expected=5|actual=5|tolerance=0
+OBS|UT-PID-008|gain|expected=2|actual=2|tolerance=0
+ - 0 ms
+TEST(PID_Math, PID007_DerivativeStepAndDecay)OBS|UT-PID-007|outer_IIR|expected=7|actual=7|tolerance=1e-05
+OBS|UT-PID-007|inner_first|expected=-274|actual=-274|tolerance=0.0002
+OBS|UT-PID-007|outer_second|expected=-18.2|actual=-18.2000007629|tolerance=0.0001
+OBS|UT-PID-007|inner_second|expected=-153.2|actual=-153.199996948|tolerance=0.0002
+ - 0 ms
+TEST(PID_Math, PID006_NegativeIntegralClamp)OBS|UT-PID-006|outer_sum|expected=-500|actual=-500|tolerance=1e-06
+OBS|UT-PID-006|inner_sum|expected=-500|actual=-500|tolerance=1e-06
+ - 0 ms
+TEST(PID_Math, PID005_PositiveIntegralClamp)OBS|UT-PID-005|outer_sum|expected=500|actual=500|tolerance=1e-06
+OBS|UT-PID-005|inner_sum|expected=500|actual=500|tolerance=1e-06
+ - 0 ms
+TEST(PID_Math, PID004_IntegralTwoCalls)OBS|UT-PID-004|outer_first|expected=0.012|actual=0.0120000001043|tolerance=1e-07
+OBS|UT-PID-004|inner_first|expected=7.2e-05|actual=7.20000025467e-05|tolerance=1e-08
+OBS|UT-PID-004|outer_second|expected=0.024|actual=0.0240000002086|tolerance=1e-07
+OBS|UT-PID-004|inner_second|expected=0.000216|actual=0.000216000014916|tolerance=1e-08
+ - 0 ms
+TEST(PID_Math, PID003_RcEndpoints)OBS|UT-PID-003|low_inner|expected=-50|actual=-50|tolerance=1e-05
+OBS|UT-PID-003|low_sum|expected=-0.05|actual=-0.0500000007451|tolerance=1e-06
+OBS|UT-PID-003|high_inner|expected=50|actual=50|tolerance=1e-05
+OBS|UT-PID-003|high_sum|expected=0.1|actual=0.10000000149|tolerance=1e-06
+ - 0 ms
+TEST(PID_Math, PID002_Neutral)OBS|UT-PID-002|outer|expected=0|actual=0|tolerance=1e-06
+OBS|UT-PID-002|inner|expected=0|actual=0|tolerance=1e-06
+ - 0 ms
+
+OK (77 tests, 77 ran, 501 checks, 0 ignored, 0 filtered out, 3 ms)
+
+RUN_EXIT_CODE=0
