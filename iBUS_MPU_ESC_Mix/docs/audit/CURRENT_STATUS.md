@@ -1,5 +1,18 @@
 # Trạng thái audit hiện tại
 
+> **Cập nhật bằng chứng 26/10/2026:** Tệp này giữ nguyên bản chốt lịch sử 05/10 bên dưới. Trạng thái mới hơn và ánh xạ bằng chứng xem [HOST_VERIFICATION_2026-10-26.md](HOST_VERIFICATION_2026-10-26.md). Báo cáo host-test nằm trên branch `test/cpputest-firmware` (chưa merge `develop`). Không đánh dấu toàn bộ firmware an toàn/bay được.
+
+## Bổ sung trạng thái đến 26/10/2026 (không ghi đè lịch sử)
+
+- **Host verification:** `77/77 tests PASS`, `501 assertions`, `0 FAIL`, `0 ignored`, `exit code 0`; 7 production C files được host-build từ source gốc. `-r2` và `-O2` PASS theo [báo cáo](https://github.com/NemzNemz/Basic_Drone_Project/blob/test/cpputest-firmware/iBUS_MPU_ESC_Mix/docs/testing/UNIT_TEST_SUMMARY.md).
+- **Ma trận 8/46:** 32 chỉ mục có evidence host mới, 14 chỉ mục không có evidence host trực tiếp mới. Có 6 ứng viên phê duyệt **logic-only** (C2, D1, D3, D4, D5, E2); **0 chỉ mục được tự động nâng PASS toàn phần**. Có 30 chỉ mục được đánh dấu có gate phần cứng trong tương lai (không đồng nghĩa 30 chỉ mục hiện UNRESOLVED). Xem ma trận liên kết từng test ID, kết quả và giới hạn.
+- **B4 sau ngày 19/10:** theo bản bàn giao, main RUNNING đã bảo vệ mailbox→snapshot bằng PRIMASK, source review và firmware build PASS. Hai helper tiền kiểm tra giữ nguyên theo đánh giá rủi ro. **B4 UNRESOLVED** đến khi có runtime/IRQ/preemption thật. Host-test IT-007 chỉ kiểm tra bàn giao event tuần tự.
+- **A5:** test bias/mean PASS trên host; phát hiện spike gyro thực tế ngày 29/09 chưa được retest thỏa đáng. Bản chốt A1–A6 PASS và nhật ký A5 UNRESOLVED còn **mâu thuẫn cần xác nhận**, không tự đóng A5.
+- **A7.4:** vẫn UNRESOLVED; **F01–F03:** vẫn OPEN. Các điều kiện ARM/failsafe/calibration chỉ được characterization theo safety policy hiện hành; không xác nhận an toàn vật lý.
+- **Thời điểm kiểm tra lại phần cứng:** FC không khả dụng trong tuần 26/10–01/11; không đặt công việc phụ thuộc FC trong khoảng này. Sau khi phần cứng trở lại, ưu tiên an toàn nguồn/sensor, B4/RC, B5–B7 timing, motor/ESC và final pre-flight theo ma trận.
+
+---
+
 Cập nhật theo bản chốt cuối ca **05/10/2026**, do người dùng chuyển từ “Debug drone setup 1”. Đây là kết luận kế thừa, chưa phải kiểm chứng lại source hoặc runtime trong chat tổng hợp.
 
 ## Nguồn và thứ tự thời gian
