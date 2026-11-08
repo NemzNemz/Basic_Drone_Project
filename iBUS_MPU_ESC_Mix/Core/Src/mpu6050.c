@@ -2,7 +2,7 @@
  * mpu6050.c
  *
  *  Created on: Jun 1, 2026
- *      Author: ADMIN
+ *      Author: Nemz
  */
 
 #include "mpu6050.h"
@@ -51,20 +51,21 @@ void CONVERT_TO_ORIENT(MPU_MEASUREMENT* mpu_mea_ptr, EULER_MEASUREMENT* eul_mea_
     const float ALPHA   = 0.98f;
 
     // Goc Pitch va Roll lay tu Accel
-    float roll_accel = atan2f(-mpu_mea_ptr->accel.x,
-                              sqrtf(mpu_mea_ptr->accel.y*mpu_mea_ptr->accel.y +
+    float roll_accel = atan2f(-mpu_mea_ptr->accel.y,
+                              sqrtf(mpu_mea_ptr->accel.x*mpu_mea_ptr->accel.x +
                                     mpu_mea_ptr->accel.z*mpu_mea_ptr->accel.z));
 
-    float pitch_accel = atan2f(mpu_mea_ptr->accel.y,
-                               sqrtf(mpu_mea_ptr->accel.x*mpu_mea_ptr->accel.x +
+    float pitch_accel = atan2f(-mpu_mea_ptr->accel.x,
+                               sqrtf(mpu_mea_ptr->accel.y*mpu_mea_ptr->accel.y +
                                      mpu_mea_ptr->accel.z*mpu_mea_ptr->accel.z));
 
-    // Chuuyển sang rad/s cho giống bên MPU_RAW_MEA
+    // Chuyển góc Roll/Pitch từ degree sang radian
     float roll_prev  = eul_mea_ptr->roll  * DEG_TO_RAD;
     float pitch_prev = eul_mea_ptr->pitch * DEG_TO_RAD;
 
-    //Goc Pitch va Roll lay tu Gyro
-    float roll_gyro  = roll_prev  + mpu_mea_ptr->gyro.x * MPU_DT;
+    // Theo huong lap MPU: +gyro.x tuong ung voi chieu giam (-) cua Roll
+    float roll_gyro  = roll_prev  - mpu_mea_ptr->gyro.x * MPU_DT;
+    // Theo huong lap MPU: +gyro.y tuong ung voi chieu tang (+) cua Pitch
     float pitch_gyro = pitch_prev + mpu_mea_ptr->gyro.y * MPU_DT;
 
     // Dung hợp, by MarkSherstan/CompFilter/Fusion
@@ -82,11 +83,66 @@ void CONVERT_TO_ORIENT(MPU_MEASUREMENT* mpu_mea_ptr, EULER_MEASUREMENT* eul_mea_
     if (eul_mea_ptr->pitch > 180.0f)  eul_mea_ptr->pitch -= 360.0f;
     if (eul_mea_ptr->pitch < -180.0f) eul_mea_ptr->pitch += 360.0f;
 }
+//CẦN XEM XÉT LẠI RẤT KỸ!!!!!
+void MPU_CALIB_GYRO(uint16_t samples, MPU_MEASUREMENT* mpu_mea_ptr) {
+	//Các phép toán cộng trừ từ -32768 đến 32767 có thể gây tràn, ném cho nó int32 cho dư
+	int32_t calib_x = 0;
+	int32_t calib_y = 0;
+	int32_t calib_z = 0;
+
+	//Lưu giá trị trung bình lại
+	float avg_calib_x =0;
+	float avg_calib_y =0;
+	float avg_calib_z =0;
+
+	//Số mẫu thử ko thể là 0
+	if(samples == 0){
+		samples = 1;
+	}
+	
+	for(uint16_t i =0; i < samples; i++){
+		HAL_I2C_Mem_Read(
+			mpu6050_hi2c, 
+			MPU6050_I2C_ADDR,
+			//Địa chỉ thanh ghi khởi đầu của chuỗi đọc 14bytes 
+			MPU6050_ACCEL_XOUT_H,
+			//Độ rộng không gian địa chỉ trải gọn trong 256 giá trị 
+			I2C_MEMADD_SIZE_8BIT,
+			//Địa chỉ đích của mảng đệm trích xuất dữ liệu thô 14bytes 
+			mpu_mea_ptr->raw_buffer,
+			//Tổng số lượng byte liên tiếp bắt buộc phải kéo về 
+			MPU6050_RAW_DATA_SIZE, 
+			//Thời gian timeout
+			500);
+		calib_x += (int16_t)((mpu_mea_ptr->raw_buffer[8] << 8) | mpu_mea_ptr->raw_buffer[9]);
+		calib_y += (int16_t)((mpu_mea_ptr->raw_buffer[10] << 8) | mpu_mea_ptr->raw_buffer[11]);
+		calib_z += (int16_t)((mpu_mea_ptr->raw_buffer[12] << 8) | mpu_mea_ptr->raw_buffer[13]);
+		HAL_Delay(3);
+		
+	}
+	//Hiện đang ở đơn vị thô LSB, méo có ở deg hay rag 
+	avg_calib_x = (float)calib_x / (float)samples;
+	avg_calib_y = (float)calib_y / (float)samples;
+	avg_calib_z = (float)calib_z / (float)samples;
+	/*
+	Giờ phải chuyển đổi 2 bước. Bước 1 là chuyển về độ/s (DEG)
+	Sử dụng lại chính tầm đo đã set từ trước là 500d/s
+	*/
+	avg_calib_x = avg_calib_x / mpu6050_gyro_lsbs;
+	avg_calib_y = avg_calib_y / mpu6050_gyro_lsbs;
+	avg_calib_z = avg_calib_z / mpu6050_gyro_lsbs;
+	//Bước 2 là ném nó về dạng RAD/s
+	avg_calib_x = avg_calib_x * DEG_TO_RAD;
+	avg_calib_y = avg_calib_y * DEG_TO_RAD;
+	avg_calib_z = avg_calib_z * DEG_TO_RAD;
+	//Ném nó vào hàm set_bias
+	MPU_SET_GYRO_BIAS(avg_calib_x, avg_calib_y, avg_calib_z);
+}
 
 void MPU_SET_GYRO_BIAS(float x, float y, float z){
-	gbias_x = x;
-	gbias_y = y;
-	gbias_z = z;
+	gbias_x = -x;
+	gbias_y = -y;
+	gbias_z = -z;
 }
 
 void MPU_RAW_MEASUREMENT(MPU_MEASUREMENT* mpu_mea_ptr){
@@ -100,9 +156,9 @@ void MPU_RAW_MEASUREMENT(MPU_MEASUREMENT* mpu_mea_ptr){
 	mpu_mea_ptr->gyro.z =(int16_t)((mpu_mea_ptr->raw_buffer[12] << 8) | mpu_mea_ptr->raw_buffer[13]) / mpu6050_gyro_lsbs;
 
 	//Biến đổi từ độ/s sang rad/s
-	mpu_mea_ptr->gyro.x = mpu_mea_ptr->gyro.x * M_PI/180.0f;
-	mpu_mea_ptr->gyro.y = mpu_mea_ptr->gyro.y * M_PI/180.0f;
-	mpu_mea_ptr->gyro.z = mpu_mea_ptr->gyro.z * M_PI/180.0f;
+	mpu_mea_ptr->gyro.x = mpu_mea_ptr->gyro.x * (M_PI/180.0f);
+	mpu_mea_ptr->gyro.y = mpu_mea_ptr->gyro.y * (M_PI/180.0f);
+	mpu_mea_ptr->gyro.z = mpu_mea_ptr->gyro.z * (M_PI/180.0f);
 
 	//Bù trừ sai số tĩnh gyro
 	mpu_mea_ptr->gyro.x += gbias_x;
@@ -134,10 +190,6 @@ void MPU_INIT(I2C_HandleTypeDef *hi2c_hw){
 	mpu6050_set_fsr_gyro();
 	//Set tầm đo accel
 	mpu6050_set_fsr_accel();
-	//Bật ngắt khi data sẵn sàng
-	mpu6050_data_ready_interrupt_enable();
-	//Tự động xoá cờ ngắt dưới nền bus I2C
-	mpu6050_enable_latch_int_rd_clear();
 }
 
 HAL_StatusTypeDef MPU_TRIGGER_READ_IT
@@ -298,7 +350,7 @@ static void mpu6050_set_fsr_accel(void){
      - bit 4 - 3 AFS_SEL = 0x11 do chọn tầm đo +-16g/s
 	 */
 	reg_val &= ~(0x03 << 3); // Xoá AFS_SEL
-	reg_val |= ((0x03 & 0x03)<< 3); // AFS_SEL = 0x11
+	reg_val |= ((0x03 & 0x03)<< 3); // AFS_SEL = 3 -> ±16g
 	mpu6050_accel_lsbs = 2048.0f;
 	//Ghi nó vào thanh ghi GYRO_CONFIG
 	mpu6050_write_reg(MPU6050_ACCEL_CONFIG, reg_val);
@@ -336,3 +388,13 @@ static void mpu6050_enable_latch_int_rd_clear(void){
 	//Ghi nó vào thanh ghi INT_PIN_CFG
 	mpu6050_write_reg(MPU6050_INT_PIN_CFG, reg_val);
 }
+
+void MPU_DATA_READY_START(void){
+	  // Bat DATA_RDY cuoi cung de bat dau nói chuyện bang interrupt
+	mpu6050_enable_latch_int_rd_clear();
+	// Cau hinh cach chan INT hoat dong truoc khi bat nguon ngat
+	mpu6050_data_ready_interrupt_enable();
+}
+ //YUP
+
+

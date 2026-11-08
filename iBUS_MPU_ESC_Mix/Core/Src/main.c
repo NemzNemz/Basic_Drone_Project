@@ -18,7 +18,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "string.h"
 #include "adc.h"
+#include "dma.h"
 #include "i2c.h"
 #include "tim.h"
 #include "usart.h"
@@ -26,6 +28,10 @@
 #include "unstuck_i2c.h"
 #include "mpu6050.h"
 #include "iBUS.h"
+#include "motor.h"
+#include "battery.h"
+#include "pid.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -49,16 +55,72 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+volatile uint32_t dwt_loop_exec_ticks = 0;    // Thời gian CPU xử lý 1 vòng lặp PID
+volatile float loop_exec_us = 0.0f;           // Thời gian thực thi PID (us)
+
 uint32_t tim1_ch1 = 12500;
 uint32_t tim1_ch2 = 12500;
 uint32_t tim1_ch3 = 12500;
 uint32_t tim1_ch4 = 12500;
 
+float Pitch_PID = 0.0f;
+float Roll_PID = 0.0f;
+//Chỉ để tường minh, ko cần tới nỗi 3 biến
+float Yaw_RT_PID = 0.0f;
+float Yaw_ANGLE_PID = 0.0f;
+float Yaw_FINAL_PID = 0.0f;
+//Biến tham chiếu góc mục tiêu 
+float Yaw_HEADING_REF = 0.0f;
+
+//PID kép trục Pitch
+PID_t pid_pitch_outer = {.KP = 2.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_pitch_inner = {.KP = 1.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+
+//PID kép trục Roll
+PID_t pid_roll_outer  = {.KP = 2.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+PID_t pid_roll_inner  = {.KP = 1.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+
+//PID đơn trục Yaw, tốc độ góc
+PID_t pid_yaw_rt  = {.KP = 1.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+
+//PID đơn trục Yaw, chỉ góc
+PID_t pid_yaw_ag  = {.KP = 2.0f, .KI = 0.0f, .KD = 0.0f, .error_sum = 0.0f, .prev_val = 0.0f, .IIR_derivative = 0.0f, .PID_OUT = 0.0f};
+
+
 MPU_MEASUREMENT mpu_mea = {0};
 EULER_MEASUREMENT eul_mea = {0};
+//Mặc định xung PWM xuất ra là 125us, tức méo quay quạt đâu
+MOTOR motor_speed = {12500, 12500, 12500, 12500};
+
 volatile uint8_t mpu_data_ready_flag = 0;
+volatile uint8_t ibus_loss_connect_flag = 0;
+volatile uint8_t ibus_loss_connect_cnt =0;
+
+// Xem data này có "mới nhất" hay ko
+uint8_t ibus_fresh_data =0;
+// Snapshot frame iBUS thuộc riêng main, dùng để checksum và decode
+uint8_t ibus_snapshot[32];
+
+//MPU hàng bãi, áp dụng logic check xem nó có bị lỏ như mất RX ko
+volatile uint8_t mpu_loss_cnt = 0;
+volatile uint8_t mpu_loss_flag = 0;
+//Biến lấy đại 1 trục bất kì của MPU, vì mpu ko thể có data cũ và mới giống nhau
+int16_t old_raw_z = 0;
+int16_t curren_raw_z = 0;
 
 uint8_t failsafe_flag = 0;
+//Mặc định là lock ko cho chạy motor
+uint8_t motor_lock_flag = 1;
+uint16_t ibus_prev_val =0;
+
+//Cờ cho ngắt PID, update bổ sung volatile (ko hiểu tại sao ban đầu ko bỏ volatile)
+volatile uint8_t pid_flag = 0;
+
+
+//Bien đọc điện áp của cục pin, update bổ sung volatile (ko hiểu tại sao ban đầu ko bỏ volatile)
+volatile uint32_t raw_adc_val;
+float BAT_vol;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -69,10 +131,15 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void buzz_high(void);
-void buzz_low(void);
-void buzz_ready(void);
+void Pre_Flight_Check(void);
+void Buzzer_Error_Beep(void);
+void Buzzer_Status_Beep(void);
+void Buzzer_Success(void);
+void Buzzer_On(void);
+void Buzzer_Off(void);
 void ESC_Calib(void);
+void Buzzer_Ont(void);
+void Motor_Safety(MOTOR *mt_ptr);
 /* USER CODE END 0 */
 
 /**
@@ -104,81 +171,185 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_TIM1_Init();
-  MX_USART1_UART_Init();
   MX_ADC1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM10_Init();
+  MX_TIM11_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+
+  //Timer cho ESC
   HAL_TIM_Base_Start(&htim1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
+  //Timer cho unstuck_i2c hàm nanos
   HAL_TIM_Base_Start(&htim2);
-  HAL_TIM_Base_Start(&htim3);
+
+  //Timer dành cho PID
+  HAL_TIM_Base_Start_IT(&htim10);
+  //Timer dành cho check connect RX vật lý, chạy ngắt 500Hz
+  HAL_TIM_Base_Start_IT(&htim11);
+
+  //Bắt đầu khởi tạo 1 đống cấu kiện
   MPU_INIT(&hi2c1);
-  fs_i6ab_init(&huart1);
+  fs_i6ab_init(&huart2);
+  Motor_Init(&htim1);
+  BAT_INIT(&hadc1, &raw_adc_val);
+  MPU_CALIB_GYRO(500, &mpu_mea);
 
-  while(is_iBUS_Received() == 0){
-	  buzz_high();
-  }
-  buzz_ready();
+  //Hàm tổng hợp các bước check an toàn bay
+  Pre_Flight_Check();
 
-  if(fs_i6.SwB == 2000){
-	  buzz_low();
-	  ESC_Calib();
-	  while(fs_i6.SwB != 1000){
-		  is_iBUS_Received();
-		  buzz_low();
-	  }
-  }
-  buzz_ready();
+  //Timer cho cái còi lởm
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 
-  //Nếu ga chưa về 0 sau quá trình khởi tạo thì ko thể chạy hàm main, đảm bảo an toàn
-  while(is_iBUS_Throttle_Min()== 0){
-	  buzz_high();
-  }
-  buzz_ready();
+  //Giờ mới cho các cấu hình MPU ngắt chạy này, để tránh bị giành đường I2C1
+  MPU_DATA_READY_START();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
+	while (1) {
+		/* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
-	  if (mpu_data_ready_flag == 1)
-	  {
-		  mpu_data_ready_flag = 0;
-		  // Gọi hàm toán tử giải mã đại số bitwise bằng cơ chế truyền con trỏ tham chiếu
-		  MPU_RAW_MEASUREMENT(&mpu_mea);
-		  CONVERT_TO_ORIENT(&mpu_mea, &eul_mea);
-	  }
-	  if(ibus_cplt_flag == 1){
-		  // Reset cờ truyền frame ibus
-		  ibus_cplt_flag = 0;
-		  if(ibus_check_sum(&ibus_rx_buf[0], 32) == 1){
-			  ia6b_decode_data(&ibus_rx_buf[0], &fs_i6);
-			  //Nếu vào failsafe, nháy con led khác
-			  if(is_failsafe(&fs_i6)!= 0){
-				  failsafe_flag = 1;
-				  buzz_low();
-			  }
-			  else failsafe_flag = 0;
-		  }
-	  }
+		/* USER CODE BEGIN 3 */
+		if (mpu_data_ready_flag == 1) {
+			mpu_data_ready_flag = 0;
+			// Gọi hàm toán tử giải mã đại số bitwise bằng cơ chế truyền con trỏ tham chiếu
+			MPU_RAW_MEASUREMENT(&mpu_mea);
+			CONVERT_TO_ORIENT(&mpu_mea, &eul_mea);
+			curren_raw_z = (int16_t) ((mpu_mea.raw_buffer[4] << 8)
+					| mpu_mea.raw_buffer[5]);
+			//Nếu daata biến thiên thì ok mpu vẫn chạy
+			if (curren_raw_z != old_raw_z) {
+				mpu_loss_cnt = 0;
+				mpu_loss_flag = 0;
+			}
+			//Data cũ sẽ chạy dưới đây
+			old_raw_z = curren_raw_z;
+		}
 
-	  TIM1->CCR1 = 12500 + (fs_i6.L_UD - 1000) *12.5;
-	  TIM1->CCR2 = 12500 + (fs_i6.L_UD - 1000) *12.5;
-	  TIM1->CCR3 = 12500 + (fs_i6.L_UD - 1000) *12.5;
-	  TIM1->CCR4 = 12500 + (fs_i6.L_UD - 1000) *12.5;
-  }
-  /* USER CODE END 3 */
+		//Biến check xem Main vừa sao chép được frame vào snapshot hay chưa
+		uint8_t have_frame = 0;
+		//Bắt giá trị PRIMASK cũ là gì
+		uint32_t old_primask = __get_PRIMASK();
+		// Tạm chặn các ngắt có mức ưu tiên cấu hình được, trường hợp này là USART
+		__disable_irq();
+
+		if (ibus_cplt_flag == 1) {
+			//Có frame thì bắt đầu memcpy vào ibus_snapshot
+			memcpy(ibus_snapshot, ibus_mailbox, sizeof(ibus_snapshot));
+			// Reset cờ truyền frame ibus
+			ibus_cplt_flag = 0;
+			//Main vừa sao chép được frame vào snapshot
+			have_frame = 1;
+		}
+		//Trả ngắt USART lai thông qua cơ chế trả trạng thái trước khi Exception Entry
+		__set_PRIMASK(old_primask);
+
+		if (have_frame == 1) {
+			if (ibus_check_sum(&ibus_snapshot[0], 32) == 1) {
+
+				ia6b_decode_data(&ibus_snapshot[0], &fs_i6);
+				ibus_loss_connect_cnt = 0;
+				ibus_loss_connect_flag = 0;
+				//Data này là mới nhé cu
+				ibus_fresh_data = 1;
+				//Nếu mà check ra failsafe thì dựng cờ lên
+
+				if (is_failsafe(&fs_i6) != 0) {
+					failsafe_flag = 1;
+				} else
+					failsafe_flag = 0;
+			}
+		}
+		Motor_Safety(&motor_speed);
+
+		//Lấy giá trị điện áp cục pin
+		BAT_GET_VOL(raw_adc_val, &BAT_vol);
+
+		//Nếu pin yếu thì còi cho    biết còn bay về
+		if (is_bat_low(BAT_vol) == 1 && motor_lock_flag == 0) {
+			Buzzer_On();
+		}
+
+		if (pid_flag == 1) {
+			//uint32_t start_exec = DWT->CYCCNT;
+
+			pid_flag = 0;
+
+			if (fs_i6.L_UD <= 1015 || motor_lock_flag == 1) {
+				reset_error(&pid_roll_outer);
+				reset_error(&pid_roll_inner);
+				reset_error(&pid_pitch_outer);
+				reset_error(&pid_pitch_inner);
+				reset_error(&pid_yaw_rt);
+				reset_error(&pid_yaw_ag);
+
+				Pitch_PID = 0.0f;
+				Roll_PID = 0.0f;
+				Yaw_FINAL_PID = 0.0f;
+			}
+			//PID Kép trục Pitch
+			pid_pitch_roll(3000 - fs_i6.R_UD, mpu_mea.gyro.y, eul_mea.pitch,
+					&pid_pitch_outer, &pid_pitch_inner);
+			Pitch_PID = pid_pitch_inner.PID_OUT;
+
+			//PID kép trục Roll
+			pid_pitch_roll(fs_i6.R_RL, -mpu_mea.gyro.x, eul_mea.roll,
+					&pid_roll_outer, &pid_roll_inner);
+			Roll_PID = pid_roll_inner.PID_OUT;
+
+			if (fs_i6.L_RL < 1450 || fs_i6.L_RL > 1550) {
+				//Tham chiếu để Drone biết nên điều tốc motor xoay ra sao
+				Yaw_HEADING_REF = eul_mea.yaw;
+				//PID đơn trục Yaw theo tốc độ góc
+				pid_yaw_rate(fs_i6.L_RL, mpu_mea.gyro.z, &pid_yaw_rt);
+				Yaw_RT_PID = pid_yaw_rt.PID_OUT;
+				Yaw_FINAL_PID = Yaw_RT_PID;
+			} else {
+				//PID đơn trục Yaw theo góc thái độ
+				pid_yaw_angle(Yaw_HEADING_REF, eul_mea.yaw, mpu_mea.gyro.z,
+						&pid_yaw_ag);
+				Yaw_ANGLE_PID = pid_yaw_ag.PID_OUT;
+				Yaw_FINAL_PID = Yaw_ANGLE_PID;
+			}
+
+			//Chuyển đổi tín hiệu tay cầm thành xung PWM
+			uint16_t target_pwm_m1 = (uint16_t) (12500
+					+ (fs_i6.L_UD - 1000) * 12.5f + Pitch_PID + Roll_PID
+					- Yaw_FINAL_PID);
+			//(fs_i6.L_RL - 1500) * 5.0f);
+
+			uint16_t target_pwm_m2 = (uint16_t) (12500
+					+ (fs_i6.L_UD - 1000) * 12.5f - Pitch_PID + Roll_PID
+					+ Yaw_FINAL_PID);
+			//(fs_i6.L_RL - 1500) * 5.0f);
+
+			uint16_t target_pwm_m3 = (uint16_t) (12500
+					+ (fs_i6.L_UD - 1000) * 12.5f - Pitch_PID - Roll_PID
+					- Yaw_FINAL_PID);
+			//(fs_i6.L_RL - 1500) * 5.0f);
+
+			uint16_t target_pwm_m4 = (uint16_t) (12500
+					+ (fs_i6.L_UD - 1000) * 12.5f + Pitch_PID - Roll_PID
+					+ Yaw_FINAL_PID);
+			//(fs_i6.L_RL - 1500) * 5.0f);
+			Motor_Update_Values(&motor_speed, target_pwm_m4, target_pwm_m2,
+					target_pwm_m3, target_pwm_m1);
+			// Tính thời gian CPU chạy hết khối lệnh trên:
+			//dwt_loop_exec_ticks = DWT->CYCCNT - start_exec;
+			//loop_exec_us = (float)dwt_loop_exec_ticks / 100.0f;
+		}
+	}
+	/* USER CODE END 3 */
 }
 
 /**
@@ -227,66 +398,105 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void Pre_Flight_Check(void){
+	while(is_iBUS_Received() == 0){
+		Buzzer_Error_Beep();
+	}
+	Buzzer_Success();
+	
+	if(fs_i6.SwB == 2000){
+		Buzzer_Status_Beep();
+		ESC_Calib ();
+		while(fs_i6.SwB != 1000){
+			is_iBUS_Received();
+			Buzzer_Status_Beep();
+		}
+	}
+	Buzzer_Success();
+	
+	//Nếu ga chưa về 0 sau quá trình khởi tạo thì ko thể chạy hàm main, đảm bảo an toàn
+	//Nếu ga về 0 mà chưa chuyển về Disarm thì cũng khoá ko cho bay
+	while(is_iBUS_Throttle_Min()== 0 || fs_i6.SwA == 2000){
+		Buzzer_Error_Beep();
+	}
+	Buzzer_Success();
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  // Kiểm tra chân phát động ngắt có phải là PA2 (GPIO_PIN_2) hay không
-  if (GPIO_Pin == GPIO_PIN_2)
+  // Kiểm tra chân phát động ngắt có phải là PB1
+  // MPU6050 Data Ready: sample mới đã sẵn sàng trong register của MPU
+  if (GPIO_Pin == GPIO_PIN_1)
   {
-    // Phát động lệnh đọc chuỗi 14 bytes không chặn qua ngắt I2C1
-    // Truyền trực tiếp handle vật lý &hi2c1 và địa chỉ thực thể dữ liệu người dùng &mpu_mea
-    HAL_StatusTypeDef status = MPU_TRIGGER_READ_IT(&hi2c1, (MPU_MEASUREMENT*)&mpu_mea);
-
-    // Bẫy lỗi treo bus nếu xuất hiện bằng cách giải vây
+    // Chỉ khởi động I2C non-blocking để nhận 14 bytes vào raw_buffer
+    // Việc truyền dữ liệu tiếp tục qua I2C interrupt, EXTI không chờ hoàn thành
+    HAL_StatusTypeDef status = MPU_TRIGGER_READ_IT(&hi2c1, &mpu_mea);
     if (status == HAL_BUSY)
     {
-      unstuck_i2c1();
+    // I2C dang ban khong dong nghia bus bi treo.
+    // Bo request nay va cho MPU Data Ready tiep theo.
+    // Khong reset I2C khi transaction truoc co the van dang hoat dong.
+    // Tạm ko chứng minh được tính hiệu quả của hàm này, nên trong Firmware, hàm unstuck sẽ bị loại bỏ
+      //unstuck_i2c1();
     }
   }
 }
 
 void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-  // Kiểm tra tất định thực thể bus vừa hoàn thành ngắt có phải là I2C1 hay không
+  // Callback chỉ được gọi sau khi I2C đã nhận hoàn tất toàn bộ 14 bytes
   if (hi2c->Instance == I2C1)
   {
-    // Nâng biến cờ toàn cục lên mức hằng số 1 để thông báo dữ liệu thô đã nạp đủ vào RAM
+	// Báo cho main: raw_buffer đã có một sample hoàn chỉnh để xử lý
     mpu_data_ready_flag = 1;
   }
 }
 
 //Callback cho nhận data iBUS
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	//Kiểm tra cờ hiệu RXNE có được bật hay chưa, nằm trong UART_SR, bit số 5 RxNE
-	if(huart->Instance == USART1){
-		usart1_rx_flag = 1;
+	if(huart->Instance == USART2){
+		usart2_rx_flag = 1;
 		//Chạy hàm đọc 32byte iBUS
-		iBUS_Parse_Byte(&usart1_rx_data);
-		HAL_UART_Receive_IT(&huart1, &usart1_rx_data, 1);
+		iBUS_Parse_Byte(&usart2_rx_data);
+		//Ngắt từng byte một
+		HAL_UART_Receive_IT(&huart2, &usart2_rx_data, 1);
 	}
 }
 
+void Buzzer_On(void){
+	TIM3->ARR = 99;
+	TIM3->CCR1 = 50;					
+	TIM3->PSC = 284;				 
+	//HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+}
+
+void Buzzer_Off(void){
+	TIM3->CCR1 = 0;
+}
+
 // Buzz cao dành cho tín hiệu iBUS
-void buzz_high(void){
+void Buzzer_Error_Beep(void){
 	TIM3->ARR = 99;
 	TIM3->CCR1 = 50; // Duy trì chính xác 50% Duty Cycle cho màng loa rung cực đại
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 	TIM3->PSC = 284;
-	HAL_Delay(200);
+	HAL_Delay(100);
 	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
-	HAL_Delay(200);
+	HAL_Delay(100);
 }
 
-void buzz_low(void){
+void Buzzer_Status_Beep(void){
 	TIM3->ARR = 99;
 	TIM3->CCR1 = 50; // Duy trì chính xác 50% Duty Cycle cho màng loa rung cực đại
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 	TIM3->PSC = 999;
-	HAL_Delay(200);
+	HAL_Delay(100);
 	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
-	HAL_Delay(200);
+	HAL_Delay(100);
 }
 
-void buzz_ready(void)
+//Hàm AI viết để nghe tiếng như winXP
+void Buzzer_Success(void)
 {
 	TIM3->ARR = 99;
 	TIM3->CCR1 = 35;
@@ -307,7 +517,7 @@ void buzz_ready(void)
 			260
 	};
 
-	for(int i = 0; i < 4; i++)
+	for(uint8_t i = 0; i < 4; i++)
 	{
 		TIM3->PSC = psc[i];
 
@@ -317,7 +527,7 @@ void buzz_ready(void)
 
 		HAL_Delay(35);
 	}
-	HAL_Delay(2000);
+	HAL_Delay(1000);
 }
 
 void ESC_Calib(){
@@ -332,6 +542,89 @@ void ESC_Calib(){
 	TIM1->CCR3 = 12500;
 	TIM1->CCR4 = 12500;
 	HAL_Delay(8000);
+}
+
+void Motor_Safety(MOTOR *mt_ptr){
+	  //Nếu như gạt cần bay và ga thấp nhất thì mới cho bay + gỡ cờ khoá
+	  if(fs_i6.SwA == 2000
+		&& fs_i6.L_UD <= 1010
+		&& ibus_fresh_data == 1){
+
+	  	if(motor_lock_flag == 1){
+			// Chụp lại góc Yaw thực tế lúc drone nằm trên mặt đất
+			Yaw_HEADING_REF = eul_mea.yaw; 
+            motor_lock_flag = 0;
+		}
+	  	//Pin ko yếu thì ko có còi đâu
+	  	if(is_bat_low(BAT_vol) == 0) {
+	  		Buzzer_Off();
+	  	}
+	    //Động cơ quay chậm để cho biết sẵn sàng
+		Motor_Min_Throttle(&htim1);
+	  }
+	  //Xoá luôn cờ	data mới
+	  ibus_fresh_data = 0;
+	  //Nếu như gạt cần bay XUỐNG (SwA = 2000) nhưng ga VẪN CAO
+	  if(fs_i6.SwA == 2000 && motor_lock_flag == 1) {
+		Buzzer_On();
+	  }
+
+	  //Gạt cần SwA lên là khoá, và tắt kèn
+	  if(fs_i6.SwA == 1000) {
+		  motor_lock_flag = 1;
+		  Buzzer_Off();
+	  }
+
+	  //Nếu cờ lock đang bật thì khoá động cơ
+	  if(motor_lock_flag == 1){
+	  	 Motor_Lock(&htim1);
+	  }
+	  //Mất mpu thì phắn
+	  else if(mpu_loss_flag == 1){
+		  motor_lock_flag = 1;
+		  Motor_Lock(&htim1);
+	  }
+	  //Nếu bất kì điều kiện nào trong đây được kích hoạt thì báo còi + giảm tốc lực
+	  else if(failsafe_flag == 1 || ibus_loss_connect_flag == 1){
+		Buzzer_On();
+		Motor_Min_Throttle(&htim1);
+	  }
+	  //Thoãa hết thì bay
+	  else 
+	  {
+	  	//Nếu ga cao cao tí thì nhận điều tốc bằng PWM
+	  	if(fs_i6.L_UD > 1050){
+			Motor_Set_Speed(mt_ptr);
+	  	}
+	  	else{
+			Motor_Min_Throttle(&htim1);
+		}
+	  	//Còi tắt nếu pin ko yếu
+	  	if(is_bat_low(BAT_vol) == 0) {
+	  		Buzzer_Off();
+	  	}
+	  }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	//Boi vi ngat nao cung nhay vao ham nay, nen phai check xem co phai dung TIM khong?
+	if (htim->Instance == htim11.Instance) {
+		ibus_loss_connect_cnt++;
+		mpu_loss_cnt++;
+		if (ibus_loss_connect_cnt >= 250) {
+			//Bật cờ gì đó ở đây
+			ibus_loss_connect_flag = 1;
+			ibus_loss_connect_cnt = 0;
+		}
+		if (mpu_loss_cnt >= 50){
+			//MPU hẻo rồi đó
+			mpu_loss_flag = 1;
+			mpu_loss_cnt = 0;
+		}
+	}
+	if (htim->Instance == htim10.Instance){
+		pid_flag = 1;
+	}
 }
 
 /* USER CODE END 4 */
